@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+
+@theme {
+    /* === PRIMARY COLOR SCHEME (Green Earth Tones) === */
+    --color-primary-50: #f5f5f3;    /* Lightest (derived) */
+    --color-primary-100: #dad7cd;   /* Bone */
+    --color-primary-200: #c5c1b3;   /* Between (derived) */
+    --color-primary-300: #a3b18a;   /* Laurel Green */
+    --color-primary-400: #7a9370;   /* Between (derived) */
+    --color-primary-500: #588157;   /* Fern Green - Main */
+    --color-primary-600: #3a5a40;   /* Hunter Green - Main Dark */
+    --color-primary-700: #344e41;   /* Brunswick Green - Darkest */
+    --color-primary-800: #2a3f35;   /* Darker (derived) */
+    --color-primary-900: #1f2e27;   /* Darkest (derived) */
+  
+    /* === SECONDARY COLOR SCHEME (Lighter tones for accents) === */
+    --color-secondary-50: #f9f8f6;
+    --color-secondary-100: #dad7cd;  /* Bone - for backgrounds */
+    --color-secondary-200: #c5c1b3;
+    --color-secondary-300: #a3b18a;  /* Laurel Green - for soft accents */
+    --color-secondary-400: #8fa67a;
+    --color-secondary-500: #7a9370;
+    --color-secondary-600: #6b8363;
+    --color-secondary-700: #5c7356;
+    --color-secondary-800: #4d6249;
+    --color-secondary-900: #3e523c;
+  
+    /* === ACCENT (Brightest green for CTAs) === */
+    --color-accent-500: #588157;    /* Fern Green */
+    --color-accent-600: #3a5a40;    /* Hunter Green */
+  
+    /* === NEUTRAL (Bone for backgrounds) === */
+    --color-neutral-50: #fafaf9;
+    --color-neutral-100: #dad7cd;   /* Bone */
+    --color-neutral-200: #c5c1b3;
+    --color-neutral-300: #b0ada0;
+    --color-neutral-400: #9b978d;
+    --color-neutral-500: #86827a;
+    --color-neutral-600: #6e6b64;
+    --color-neutral-700: #56544e;
+    --color-neutral-800: #3e3d38;
+    --color-neutral-900: #262622;
+  }
