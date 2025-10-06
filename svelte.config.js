@@ -3,6 +3,7 @@ import adapter from '@sveltejs/adapter-static';
 import path from 'path';
 import fs from 'fs';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import mdsvexConfig from './mdsvex.config.js';
 
 // Blog-Posts einlesen
 const blogPosts = fs.readdirSync('./src/routes/blog/posts')
@@ -10,12 +11,10 @@ const blogPosts = fs.readdirSync('./src/routes/blog/posts')
   .map(file => `/blog/${file.replace(/\.(svx|md)$/, '')}`);
 
 const config = {
-  extensions: ['.svelte', '.svx', '.md'],
+  extensions: ['.svelte', '.svx', '.md', ...mdsvexConfig.extensions],
   preprocess: [
     vitePreprocess(),
-    mdsvex({
-      extensions: ['.svx', '.md'],
-    })
+    mdsvex(mdsvexConfig)
   ],
   kit: {
     adapter: adapter({

@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@plugin '@tailwindcss/typography';
 
 @theme {
     /* === PRIMARY COLOR SCHEME (Green Earth Tones) === */
