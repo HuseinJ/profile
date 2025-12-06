@@ -38,7 +38,6 @@
 	title="Blog - {data.seo?.siteName || 'My Blog'}"
 	description="Articles, tutorials, and insights on web development"
 	canonical="{data.seo?.siteUrl || ''}/blog"
-	image={data.seo?.image || ''}
 />
 
 <!-- Hero Section -->
@@ -67,6 +66,7 @@
 					<button 
 						on:click={() => searchQuery = ''}
 						class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+						aria-label="search"
 					>
 						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -119,7 +119,7 @@
 						{#each selectedTags as tag}
 							<span class="px-3 py-1 bg-primary-100 text-primary-700 rounded-full flex items-center gap-1">
 								{tag}
-								<button on:click={() => toggleTag(tag)} class="hover:text-primary-900">
+								<button on:click={() => toggleTag(tag)} class="hover:text-primary-900" aria-label="search">
 									<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
 									</svg>
