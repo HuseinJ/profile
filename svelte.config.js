@@ -6,7 +6,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import mdsvexConfig from './mdsvex.config.js';
 
 // Blog-Posts einlesen
-const blogPosts = fs.readdirSync('./src/routes/blog/posts')
+const blogPosts = fs.readdirSync('./src/posts')
   .filter(file => file.endsWith('.svx') || file.endsWith('.md'))
   .map(file => `/blog/${file.replace(/\.(svx|md)$/, '')}`);
 

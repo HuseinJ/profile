@@ -57,7 +57,7 @@
 					type="text" 
 					bind:value={searchQuery}
 					placeholder="Search articles by title or content..."
-					class="w-full px-6 py-4 pl-14 text-lg rounded-xl border-2 border-primary-300 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-200 transition-all shadow-lg"
+					class="w-full px-6 py-4 pl-14 text-lg rounded-xl border-2 border-primary-300 focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-200 transition-all shadow-lg bg-white"
 				/>
 				<svg class="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>

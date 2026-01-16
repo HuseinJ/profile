@@ -18,7 +18,7 @@ interface SvxModule {
 }
 
 export const load: PageLoad = async () => {
-  const modules = import.meta.glob('./posts/*.svx');
+  const modules = import.meta.glob('../../posts/*.svx');
   const posts = await Promise.all(
     Object.entries(modules).map(async ([path, resolver]) => {
       const { metadata } = (await resolver()) as SvxModule;

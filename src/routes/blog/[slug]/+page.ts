@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, parent }) => {
   const { seo } = await parent();
   
   try {
-    const post = await import(`../posts/${params.slug}.svx`) as SvxModule;
+    const post = await import(`../../../posts/${params.slug}.svx`) as SvxModule;
     
     return {
       content: post.default,
