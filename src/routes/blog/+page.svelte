@@ -166,7 +166,13 @@
 							<a href="/blog/{post.slug}" class="block">
 								<!-- Featured Image Placeholder -->
 								<div class="h-64 {index === 0 && !searchQuery && selectedTags.length === 0 ? 'md:h-96' : ''} bg-gradient-to-br from-primary-400 via-primary-500 to-primary-600 relative overflow-hidden">
-									<div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity"></div>
+									{#if post.meta.image}
+									  <img 
+										src={post.meta.image} 
+										alt={post.meta.title}
+										class="absolute inset-0 w-full h-full object-cover"
+									  />
+									{/if}									<div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity"></div>
 									<div class="absolute bottom-6 left-6 right-6">
 										<div class="flex items-center gap-2 flex-wrap">
 											<span class="inline-block px-4 py-2 bg-white/95 backdrop-blur-sm text-primary-700 text-sm font-bold rounded-full shadow-md">

@@ -92,6 +92,13 @@
 				<article class="group bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary-300">
 					<a href="/blog/{post.slug}" class="block">
 						<div class="h-48 bg-gradient-to-br from-primary-500 to-primary-700 relative overflow-hidden">
+							{#if post.meta.image}
+								<img 
+									src={post.meta.image} 
+									alt={post.meta.title}
+									class="absolute inset-0 w-full h-full object-cover"
+								/>
+							{/if}
 							<div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
 							<div class="absolute bottom-4 left-4 right-4">
 								<span class="inline-block px-3 py-1 bg-white/90 backdrop-blur-sm text-primary-600 text-sm font-semibold rounded-full">

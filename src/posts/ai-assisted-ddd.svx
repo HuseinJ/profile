@@ -1,0 +1,88 @@
+---
+title: "Can AI Help Architects Design Better Software?"
+image: "/posts/ai-assisted-ddd/title.png"
+date: "2025-09-03"
+author: "Husein Jusic"
+summary: "Exploring how Large Language Models can assist in Domain-Driven Design, specifically for identifying bounded contexts in complex enterprise software systems"
+tags: ["Domain-Driven Design", "LLM", "Software Architecture", "AI", "Research"]
+tableOfContents:
+  - level: "h2"
+    title: "The Problem"
+    id: "the-problem"
+  - level: "h2"
+    title: "The Approach"
+    id: "the-approach"
+  - level: "h2"
+    title: "Key Findings"
+    id: "key-findings"
+  - level: "h2"
+    title: "Limitations"
+    id: "limitations"
+  - level: "h2"
+    title: "Conclusion"
+    id: "conclusion"
+  - level: "h2"
+    title: "Read the Full Thesis"
+    id: "conclusion"
+---
+
+## The Problem
+
+Software architecture design is hard. In enterprise environments, architects often face tight deadlines and business pressure, leading them to pick the first viable solution rather than exploring multiple candidates. The consequences? Increased maintenance costs, technical debt, and systems that don't scale well.
+
+> Suboptimal architectures can lead to increased maintenance cost... For SaaS companies, these consequences can translate to competitive disadvantages.
+
+This got me thinking: **Could LLMs help architects explore more design options in less time?**
+
+For my bachelor's thesis at TU Munich, I investigated how Large Language Models can assist with Domain-Driven Design—specifically, the challenging task of identifying *bounded contexts* in complex systems.
+
+## The Approach
+
+I developed a **five-phase, prompt-driven workflow** that guides LLMs through structured architectural analysis:
+
+| Phase | Purpose |
+|-------|---------|
+| 1. Ubiquitous Language | Extract and define core domain vocabulary |
+| 2. Event Storming | Identify domain events, commands, and actors |
+| 3. Bounded Context Identification | Group concepts into cohesive architectural units |
+| 4. Aggregate Design | Define entities, value objects, and invariants |
+| 5. Architecture Mapping | Map to hexagonal architecture patterns |
+
+The key insight was treating the LLM as a **"Senior DDD Specialist & Architectural Sparring Partner"** rather than just a code generator. This role-based prompting approach encouraged the model to ask probing questions and challenge assumptions.
+
+I tested three leading LLMs (Claude, GPT, and Gemini) on two real domains software domains.
+
+## Key Findings
+
+### The Good News
+
+In short the LLMs excelled at:
+- **Accelerating initial exploration** — generating multiple architectural candidates quickly
+- **Enforcing systematic analysis** — ensuring no domain concepts were overlooked
+- **Providing unbiased perspectives** — challenging assumptions that teams might take for granted
+
+### Where LLMs Struggle
+
+For very large and complex requirements sets, things got messier. The models proposed reasonable decompositions but missed critical aspects that only come from deep domain knowledge: hidden business rules buried in legacy code, cross-cutting concerns, and the historical reasons behind architectural decisions.
+
+## Limitations
+
+LLMs are not a silver bullet. Key limitations I observed:
+
+- **No organizational memory** — They can't understand why past decisions were made
+- **Tendency to over-decompose** — They optimize for theoretical clarity, sometimes ignoring practical coupling concerns
+- **Shallow aggregate design** — Without implementation context, aggregate proposals lacked the depth of human-designed models
+
+## Conclusion
+
+The most effective approach is **collaborative**: LLMs as sparring partners that accelerate exploration and challenge assumptions, with human architects making final decisions based on contextual judgment.
+
+Think of it like pair programming, but for architecture. The AI generates options and asks hard questions; you bring the experience and make the calls.
+
+If you're working on modularizing a legacy system or exploring DDD for a new project, I'd encourage you to experiment with this workflow. Just remember: the goal isn't to replace architectural thinking—it's to augment it.
+
+## Read the Full Thesis
+
+Want to dive deeper? The complete thesis includes all prompts, requirements documents, and detailed expert interview analysis.
+
+**[📄 Download the thesis (PDF)](https://github.com/HuseinJ/thesis/releases/tag/v0.4)**
