@@ -24,6 +24,9 @@ const config = {
       precompress: false,
       strict: true
     }),
+    paths: {
+      relative: false
+    },
     prerender: {
       entries: [
         '/',
