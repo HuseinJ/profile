@@ -46,7 +46,6 @@
 				
 				<p class="text-xl lg:text-2xl text-gray-600 mb-8 leading-relaxed">
 					Building secure, scalable applications with a focus on software architecture and cybersecurity. 
-					Always exploring emerging technologies and innovative solutions.
 				</p>
 				
 				<!-- CTA Buttons -->
