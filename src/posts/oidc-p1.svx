@@ -113,6 +113,6 @@ This is part 1 of a multi-part series. Here's the plan, subject to the chaos of 
   - Part 6: Integrating with real services — getting Grafana to actually trust this thing
   - Part 7: Lessons learned — (and what I'd do differently)
 
-The source code is available on [GitHub](https://github.com/HuseinJ/authentication-server). if you want to follow along or just judge me. Either way, feedback is welcome.
+The source code is available on [GitHub](https://github.com/HuseinJ/authentication-server). if you want to follow along or judge me. Either way, feedback is welcome.
 
 
