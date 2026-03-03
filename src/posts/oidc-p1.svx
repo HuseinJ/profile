@@ -4,8 +4,10 @@ date: "2026-02-24"
 author: "Husein Jusic"
 summary: "Why I decided to build my own OpenID Connect Identity Provider from scratch, what it does, and how I approached the initial design."
 tags: ["OIDC", "Identity", "Authentication", "Infrastructure", "Self-Hosted"]
+image: "/posts/oidc-p1/infra.png"
 series: "Building My Own OIDC IDP"
 part: 1
+github: HuseinJ
 tableOfContents:
   - level: "h2"
     title: "What Is an OIDC Identity Provider?"

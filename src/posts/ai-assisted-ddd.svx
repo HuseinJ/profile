@@ -5,6 +5,7 @@ date: "2025-09-03"
 author: "Husein Jusic"
 summary: "Exploring how Large Language Models can assist in Domain-Driven Design, specifically for identifying bounded contexts in complex enterprise software systems"
 tags: ["Domain-Driven Design", "LLM", "Software Architecture", "AI", "Research"]
+github: HuseinJ
 tableOfContents:
   - level: "h2"
     title: "The Problem"
