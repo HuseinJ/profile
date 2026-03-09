@@ -34,11 +34,28 @@
 	}
 </script>
 
-<SEO 
-	title="Blog - {data.seo?.siteName || 'My Blog'}"
-	description="Articles, tutorials, and insights on web development"
-	canonical="{data.seo?.siteUrl || ''}/blog"
+<SEO
+	title="Blog - HJusic"
+	description="Articles, tutorials, and insights on software architecture, cybersecurity, and emerging technologies"
+	canonical="https://hjusic.com/blog"
 />
+
+<svelte:head>
+	<!-- JSON-LD Structured Data for Blog -->
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "Blog",
+		"name": "HJusic Blog",
+		"description": "Articles, tutorials, and insights on software architecture, cybersecurity, and emerging technologies",
+		"url": "https://hjusic.com/blog",
+		"author": {
+			"@type": "Person",
+			"name": "Husein Jusic"
+		}
+	}
+	<\/script>`}
+</svelte:head>
 
 <!-- Hero Section -->
 <section class="bg-gradient-to-br from-neutral-100 via-primary-100 to-primary-200 py-20">

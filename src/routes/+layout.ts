@@ -6,6 +6,7 @@ export async function load() {
       siteName: 'HJusic',
       siteUrl: 'https://hjusic.com',
       author: 'Husein Jusic',
+      image: '/profile.jpeg',
       description: 'A personal learning blog about dev stuff',
     }
   };

@@ -8,14 +8,47 @@
 	const tags = data.meta.tags || [];
 </script>
 
-<SEO 
+<SEO
 	title="{data.meta.title} - {data.seo.siteName}"
 	description={data.meta.summary || data.seo.description}
 	canonical="{data.seo.siteUrl}/blog/{data.slug}"
 	image={data.meta.image || data.seo.image}
 	type="article"
 	author={data.meta.author || data.seo.author}
+	publishedTime={data.meta.date}
+	tags={data.meta.tags || []}
 />
+
+<svelte:head>
+	<!-- JSON-LD Structured Data for Article -->
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "BlogPosting",
+		"headline": "${data.meta.title}",
+		"description": "${data.meta.summary || data.seo.description}",
+		"image": "${data.meta.image ? `https://hjusic.com${data.meta.image}` : 'https://hjusic.com/profile.jpeg'}",
+		"datePublished": "${data.meta.date}",
+		"author": {
+			"@type": "Person",
+			"name": "${data.meta.author || data.seo.author}",
+			"url": "https://hjusic.com"
+		},
+		"publisher": {
+			"@type": "Person",
+			"name": "Husein Jusic",
+			"logo": {
+				"@type": "ImageObject",
+				"url": "https://hjusic.com/profile.jpeg"
+			}
+		},
+		"mainEntityOfPage": {
+			"@type": "WebPage",
+			"@id": "${data.seo.siteUrl}/blog/${data.slug}"
+		}${tags.length > 0 ? `,\n\t\t"keywords": "${tags.join(', ')}"` : ''}
+	}
+	<\/script>`}
+</svelte:head>
 
 <!-- Hero Section with Featured Image -->
 <section class="relative h-[60vh] min-h-[400px] bg-gradient-to-br from-primary-500 to-primary-700 overflow-hidden">

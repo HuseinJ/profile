@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import SEO from '$lib/components/SEO.svelte';
+	import { goto } from '$app/navigation';
 	export let data: PageData;
 	
 	const contact = {
@@ -10,13 +11,32 @@
 	};
 </script>
 
-<SEO 
+<SEO
 	title="{data.seo.siteName} - {data.seo.description}"
 	description={data.seo.description}
 	canonical={data.seo.siteUrl}
 	image={data.seo.image}
 	author={data.seo.author}
 />
+
+<svelte:head>
+	<!-- JSON-LD Structured Data for Person -->
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
+		"@type": "Person",
+		"name": "Husein Jusic",
+		"url": "https://hjusic.com",
+		"image": "https://hjusic.com/profile.jpeg",
+		"sameAs": [
+			"https://github.com/HuseinJ",
+			"https://linkedin.com/in/husein-jusic-7b0680165"
+		],
+		"jobTitle": "Professional Software Engineer",
+		"description": "Building secure, scalable applications with a focus on software architecture and cybersecurity"
+	}
+	<\/script>`}
+</svelte:head>
 
 <!-- Hero Section -->
 <section class="min-h-screen flex items-center justify-center bg-gradient-to-br from-neutral-50 via-primary-100 to-primary-200">
@@ -27,7 +47,7 @@
 				<div class="relative">
 					<div class="absolute -inset-4 bg-gradient-to-r from-primary-500 to-primary-700 rounded-full blur-2xl opacity-20"></div>
 					<img 
-						src="/profile.jpeg" 
+						src="{data.seo.image}"
 						alt="{data.seo.author}"
 						class="relative w-72 h-72 lg:w-96 lg:h-96 rounded-full object-cover shadow-2xl ring-8 ring-white"
 					/>
@@ -47,9 +67,12 @@
 				
 				<!-- CTA Buttons -->
 				<div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
-					<a href="/blog" class="px-8 py-4 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+					<button
+							on:click={() => goto('/blog')}
+							class="px-8 py-4 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+					>
 						Read My Blog
-					</a>
+					</button>
 				</div>
 				
 				<!-- Social Links -->

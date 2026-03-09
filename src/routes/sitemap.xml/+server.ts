@@ -1,10 +1,10 @@
 export const prerender = true;
 
 export async function GET() {
-  const postFiles = import.meta.glob('../posts/*.svx', { eager: true });
-  
+  const postFiles = import.meta.glob('../../posts/*.svx', { eager: true });
+
   const posts = Object.entries(postFiles).map(([path, module]: [string, any]) => {
-    const slug = path.replace('../posts/', '').replace('.svx', '');
+    const slug = path.split('/').pop()?.replace('.svx', '') ?? '';
     return {
       slug,
       date: module.metadata.date
