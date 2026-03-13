@@ -24,6 +24,17 @@
 	{@html `<script type="application/ld+json">
 	{
 		"@context": "https://schema.org",
+		"@type": "BreadcrumbList",
+		"itemListElement": [
+			{ "@type": "ListItem", "position": 1, "name": "Home", "item": "https://hjusic.com" },
+			{ "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://hjusic.com/blog" },
+			{ "@type": "ListItem", "position": 3, "name": "${data.meta.title}", "item": "${data.seo.siteUrl}/blog/${data.slug}" }
+		]
+	}
+	<\/script>`}
+	{@html `<script type="application/ld+json">
+	{
+		"@context": "https://schema.org",
 		"@type": "BlogPosting",
 		"headline": "${data.meta.title}",
 		"description": "${data.meta.summary || data.seo.description}",

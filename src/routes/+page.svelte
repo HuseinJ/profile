@@ -12,7 +12,7 @@
 </script>
 
 <SEO
-	title="{data.seo.siteName} - {data.seo.description}"
+	title="Husein Jusic - Software Engineer | Architecture & Security Blog"
 	description={data.seo.description}
 	canonical={data.seo.siteUrl}
 	image={data.seo.image}
@@ -32,8 +32,9 @@
 			"https://github.com/HuseinJ",
 			"https://linkedin.com/in/husein-jusic-7b0680165"
 		],
-		"jobTitle": "Professional Software Engineer",
-		"description": "Building secure, scalable applications with a focus on software architecture and cybersecurity"
+		"jobTitle": "Software Engineer",
+		"description": "Building secure, scalable applications with a focus on software architecture and cybersecurity",
+		"knowsAbout": ["Software Architecture", "Cybersecurity", "Spring Boot", "Kubernetes", "OIDC", "Domain-Driven Design", "Backend Development", "Java"]
 	}
 	<\/script>`}
 </svelte:head>

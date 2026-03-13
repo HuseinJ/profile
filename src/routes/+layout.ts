@@ -7,7 +7,7 @@ export async function load() {
       siteUrl: 'https://hjusic.com',
       author: 'Husein Jusic',
       image: '/profile.jpeg',
-      description: 'A personal learning blog about dev stuff',
+      description: 'Software engineer writing about software architecture, cybersecurity, and modern backend development.',
     }
   };
 }
