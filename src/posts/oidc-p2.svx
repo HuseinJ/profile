@@ -1,0 +1,317 @@
+---
+title: "Building My Own OIDC Identity Provider — Part 2: Core Server Implementation"
+date: "2026-03-14"
+author: "Husein Jusic"
+summary: "Setting up user and OIDC client management — the foundational data layer before any auth flows can happen."
+image: "/posts/oidc-p2/oidc_project_architecture.svg"
+tags: ["OIDC", "Identity", "Authentication", "Infrastructure", "Self-Hosted", "Spring Boot", "Java"]
+series: "Building My Own OIDC IDP"
+part: 2
+tableOfContents:
+  - level: "h2"
+    title: "Where We Left Off"
+    id: "where-we-left-off"
+  - level: "h2"
+    title: "Project Structure"
+    id: "project-structure"
+  - level: "h2"
+    title: "Entity Handling"
+    id: "entity-handling"
+  - level: "h3"
+    title: "What an LLM Gives You (and Why It's Not Enough)"
+    id: "llm-output"
+  - level: "h3"
+    title: "User Management"
+    id: "user-management"
+  - level: "h3"
+    title: "OIDC Client Management"
+    id: "oidc-client-management"
+  - level: "h2"
+    title: "Database Schema"
+    id: "database-schema"
+  - level: "h2"
+    title: "What's Coming Next"
+    id: "whats-next"
+---
+
+## Where We Left Off
+
+In Part 1, I laid out the motivation behind this project, walked through the high-level architecture, and explained the tech stack choices — Spring Boot for the backend, PostgreSQL for storage, RS256-signed JWTs, all running on K3s. What I didn't get into was any actual implementation. This part changes that. Before we can issue tokens or verify signatures, we need the foundational data layer: users who can authenticate and OIDC clients that are allowed to request authentication on their behalf. That's what this post covers.
+
+Important Notice: I don't include much of the final code here. If you'd like to check it out, you can find the complete implementation on [GitHub](https://github.com/HuseinJ/authentication-server).
+
+## Project Structure
+
+The backend and frontend are separate concerns, and I had to decide early on how to split them. Since this project is relatively simple, it would have been perfectly feasible to bundle everything into a single Spring Boot instance — serve the API and the frontend from one container, monorepo-style. But I wanted the flexibility to scale each component independently and to get more hands-on experience with Kubernetes pods and replicas, so I split them into two separate containers.
+
+The diagram below shows what this looks like in practice:
+
+<img src="/posts/oidc-p2/oidc_project_architecture.svg" alt="Architecture overview showing the frontend pod, load balancer, three backend pods, and PostgreSQL" style="max-height: 600px; margin: auto; background-color: black" class="img-center" />
+
+The user hits the frontend pod — a lightweight container that only serves the login and consent screens. Every API call from there goes through a Kubernetes service acting as a load balancer, which fans out to however many backend pod replicas are running. All of them talk to the same PostgreSQL instance underneath.
+
+Running multiple backend replicas has consequences for how the server handles authentication. With session-based auth, you'd need sticky sessions or a shared session store so that a user who logs in on one pod doesn't get bounced to another pod that has no idea who they are. That's solvable, but it's additional infrastructure and complexity for something that should be simple. Instead, I went with JWT-based authentication for the management side of the application — logging in, managing users and OIDC clients. The backend pods are stateless: every request carries its own proof of identity in the token, and any replica can validate it independently. No session synchronization, no shared state, no sticky routing.
+
+This adds complexity upfront — separate builds, separate deployments, networking between services — but it mirrors the kind of architecture you'd reach for in a system handling real traffic. Is it overkill for an OIDC provider that will serve friends and family across a handful of small services like storage and metrics dashboards? Absolutely. But this whole project is about learning, and making pragmatic trade-offs for production wasn't the point.
+
+For the backend, I used [Spring Initializr](https://start.spring.io/) to scaffold a Spring Boot project with Gradle, targeting Spring 3.5.6 on Java 25. The initial set of dependencies was deliberately minimal — just enough to get a working server with database access and the building blocks for the OIDC logic:
+
+| Dependency | Why |
+|---|---|
+| `spring-boot-starter-web` | REST API foundation — controllers, request handling, embedded Tomcat |
+| `spring-boot-starter-data-jpa` | ORM layer for users and OIDC clients in PostgreSQL |
+| `postgresql` | JDBC driver for the database |
+| `spring-boot-starter-security` | Authentication and password hashing infrastructure |
+| `spring-boot-starter-oauth2-authorization-server` | Spring's OIDC/OAuth2 server building blocks — not using it as a black box, but it provides useful primitives |
+| `spring-boot-starter-oauth2-resource-server` | JWT validation for protected endpoints |
+| `jjwt-api` / `jjwt-impl` / `jjwt-jackson` | Lower-level JWT creation and signing — more control than Spring's built-in token handling |
+| `bcprov-jdk18on` | Bouncy Castle for RSA key generation and cryptographic operations |
+| `jackson-databind` / `jackson-datatype-jsr310` | JSON serialization, including Java time types |
+| `springdoc-openapi` | Auto-generated Swagger UI — useful during development for testing endpoints |
+| `spring-kafka` | Event publishing for audit logging and future extensibility |
+| `spring-boot-starter-actuator` / `micrometer-registry-prometheus` | Health checks and Prometheus metrics — ties into the Grafana monitoring stack |
+| `vavr` | Functional programming utilities — cleaner error handling with `Either` and `Try` |
+| `lombok` | Boilerplate reduction — getters, builders, constructors |
+| `spring-boot-devtools` | Hot reload during development |
+
+You'll notice there's some overlap here — Spring's OAuth2 authorization server starter and the jjwt library can both handle JWT creation and signing. I pulled in both deliberately. Spring's starter gives me the endpoint scaffolding and the overall OAuth2 flow structure, but jjwt gives me fine-grained control over how tokens are actually constructed and signed. Since the whole point of this project is to understand every step of the token lifecycle, I didn't want that hidden behind Spring's abstractions.
+
+Vavr might raise an eyebrow too if you're not familiar with it. It's a functional programming library for Java that gives you types like `Either` and `Try` — essentially a way to model operations that can fail without reaching for exceptions everywhere. It makes the error handling in the auth flows significantly cleaner, and once you get used to it, going back to nested try-catch blocks feels painful.
+
+For testing, I'm using Spring Boot's test starter with JUnit 5, Spring Security's test utilities, and Testcontainers for spinning up real PostgreSQL and Kafka instances during integration tests — no mocking the database layer.
+
+## Entity Handling
+
+The data layer for this project needs to handle two things: users who can authenticate, and OIDC clients that are allowed to request authentication on their behalf. Both need validation, persistence, and management APIs. The design choices here set the foundation for everything that comes later — the auth flows in Part 3 will lean heavily on how users and clients are modeled.
+
+Before I walk through the actual implementation, I want to take a detour through what happens when you ask an LLM to build this for you — because the gap between "compiles and runs" and "well-architected" is exactly where the interesting decisions live.
+
+### What an LLM Gives You (and Why It's Not Enough)
+
+Most programmers now use LLMs for a significant portion of their coding work. Ask any LLM to generate a REST API or a service class, and you get something that compiles, follows patterns, and looks finished. This is both their greatest strength and their most dangerous weakness.
+
+The problem isn't that LLMs generate bad code — they don't. The problem is that they generate plausible code that works today but creates friction tomorrow. When you ask an LLM to build something, it optimizes for immediate delivery, not future extensibility.
+
+Here's what happened when I prompted an LLM to generate a secure user management system for the project:
+
+````
+I'm building a self-hosted OpenID Connect Identity Provider from scratch as a learning project. The stack is:
+
+- Java 25, Spring Boot 3.5.6, Gradle
+- PostgreSQL for persistence via Spring Data JPA
+- Spring Security for authentication
+- JWT-based authentication (not session-based) — the backend runs as multiple stateless replicas behind a load balancer
+- RS256-signed JWTs using the jjwt library (io.jsonwebtoken)
+- Lombok for boilerplate reduction
+- Vavr for functional error handling (Either, Try)
+- Bouncy Castle for cryptographic operations
+
+I need you to generate the User entity and everything required to manage users with spring boot. Make it secure.
+````
+
+I got back a complete implementation: a `User` entity, repository, service layer with Vavr error handling, controller with proper HTTP status codes, password encoding with BCrypt, account lockout logic, email verification — the works. It compiles. It runs. It looks production-ready.
+
+And it's a perfect case study in why you can't just ship what an LLM generates. Here are the main problems:
+
+**The monolithic service problem.** The generated `UserService` class orchestrates business logic, coordinates with the database, handles password validation, manages account lockouts, and determines error responses — all in a single 400+ line class. When you need to add multi-factor authentication or passwordless login, you're editing this god object, and changes to one feature risk breaking another. The validation logic is embedded inside the service methods, so password strength rules can't be reused elsewhere or made configurable without reaching into the service.
+
+**Anemic domain model.** The entity is just a container for getters and setters. The validation logic that should live close to the data (like password strength checking) lives in the service instead. Without value objects, invalid states can leak into the domain — a user could theoretically be constructed with a weak password, and you'd only catch it if every caller remembers to validate first.
+
+**Coupling everywhere.** The `UserService` directly depends on `PasswordEncoder`, `UserRepository`, and inline validation logic. Want to add an audit log? Inject another dependency. Want to send emails on registration? Another dependency. Testing requires mocking the entire dependency graph because you can't use pieces of the logic in isolation.
+
+**Security by convention, not by design.** Failed login attempts are tracked, but nothing prevents setting `failedLoginAttempts` directly. The account lock is enforced through a method, but the database won't prevent a race condition if two pods check `lockedUntil` simultaneously and both proceed. The password strength regex is a hardcoded string — if requirements change, there's no single source of truth. The generated BCrypt configuration also included a wrong comment claiming strength 12 equals "2²⁴ ≈ 16M iterations" — it's actually 2¹² = 4,096 rounds. A small error, but the kind that erodes trust in the rest of the output.
+
+**Misleading query design.** The generated `findByUsernameOrEmail` method accepts two parameters — `username` and `identifier` — but the service always passes the same value for both. The JPQL binds one to the `username` column and the other to `email`, so it works, but the parameter naming obscures what's actually happening. A single-parameter method would be clearer.
+
+None of these issues will surface on day one. The code works. But six months later, when you're trying to add phone-number-based authentication or integrate with an external identity provider, you discover that every new feature requires rewriting the service layer.
+
+The critical questions when reviewing LLM-generated code are:
+
+- Can I test individual pieces in isolation?
+- Is validation logic coupled to side effects?
+- Can invalid states be represented in my domain model?
+- If I need to add a similar feature tomorrow, how much code do I copy-paste?
+
+The generated code fails most of these. It's not malicious — it's the natural output of optimizing for delivery speed. What follows is what I built instead.
+
+### User Management
+
+The user domain has a three-level type hierarchy: a base `User` class, and two concrete subtypes — `AdminUser` and `GuestUser`. The distinction matters: only an `AdminUser` can create other users. This isn't enforced through a permission check in a service method that might be forgotten — it's encoded in the type system.
+
+```java
+// Only AdminUser has this method — GuestUser doesn't
+public UserCreatedEvent createUser(Username username, Email email, Password password, Set<RoleName> roles) { ... }
+```
+
+The `CreateUser` application service checks the type at runtime and returns a `Left` immediately if the logged-in user isn't an admin:
+
+```java
+if (loggedInUser.get() instanceof AdminUser admin) {
+    var user = users.trigger(admin.createUser(...));
+    return Either.right(user);
+}
+return Either.left(UserError.creationFailed("Only admin users can create new users"));
+```
+
+**Value Objects**
+
+This is where the design diverges most sharply from the LLM output. Validation lives at the point of construction, not scattered across service methods. `Email`, `Username`, and `Password` are all value objects that return an `Either<UserError, T>` when you try to create them. If the value is invalid, you get a `Left` — there's no way to get an `Email` object with a malformed address, because the constructor is private.
+
+```java
+// Email validates format and length before construction
+public static Either<UserError, Email> of(String email) {
+    if (StringUtils.isBlank(email)) {
+        return Either.left(UserError.validationFailed("Email cannot be empty"));
+    }
+    // ...regex check, length check...
+    return Either.right(new Email(trimmedEmail.toLowerCase()));
+}
+```
+
+`Password` does the same, with one extra property: it hashes on construction. By the time a `Password` object exists anywhere in the system, it's already a hash. The plaintext is never stored anywhere, and `toString()` returns `"Password[PROTECTED]"` to prevent accidental log exposure. The object also blocks serialization entirely by throwing `NotSerializableException` if anything tries to serialize it.
+
+Compare this with the LLM approach, where the service calls `passwordEncoder.encode(request.getPassword())` inline during user creation. If someone adds a second code path that creates users — say, a batch import — they need to remember to hash the password there too. With the value object, forgetting is impossible: you can't construct a `Password` without hashing it.
+
+**Persistence**
+
+The `Users` interface is the domain's view of the persistence layer — it knows nothing about JPA, Hibernate, or PostgreSQL. The only interesting method signature is `trigger(UserEvent event)`, which accepts a domain event and returns the resulting `User`. All writes go through this method: `UserCreatedEvent`, `UserDeletedEvent`, `ChangePasswordEvent`, and so on.
+
+The `UserAppRepository` implements `Users` and dispatches on the event type with a switch expression, handling each case separately. After persisting the change, it publishes the event through the `DomainEventPublisher` — currently backed by Kafka — so anything downstream (audit logs, notification systems) can react without the user domain knowing about them.
+
+The JPA entity (`UserDatabaseEntity`) implements Spring Security's `UserDetails` interface so that Spring's authentication machinery can work with it directly. It knows about roles and grants authorities accordingly — `ROLE_ADMIN` unlocks the admin-only endpoints, `ROLE_USER` is the baseline.
+
+**Bootstrap**
+
+One thing I didn't want to deal with manually was seeding the initial admin account. On startup, `AdminInitializer` listens for the `ApplicationReadyEvent`, checks whether the configured admin username already exists, and if not, generates a 64-character random password (with at least one character from each category — uppercase, lowercase, digit, symbol — then shuffled), creates the admin user, and fires off an email notification with the credentials. If the account already exists, it does nothing.
+
+This means the first time you deploy the server to a fresh database, you get a working admin account without touching the database directly or hardcoding credentials anywhere.
+
+### OIDC Client Management
+
+Before the IDP can authenticate anyone, it needs to know about the clients that are allowed to request authentication. An OIDC client registration answers a set of questions the IDP needs to ask: who are you, how are you authenticating yourself to me, where should I send the user after they log in, and what information are you allowed to ask for?
+
+The `OidcClient` domain object captures all of this:
+
+| Field | What it represents |
+|---|---|
+| `clientId` | Public identifier — included in every authorization request |
+| `clientSecret` | Shared secret — used to authenticate the client at the token endpoint |
+| `clientName` | Human-readable label |
+| `grantTypes` | Which OAuth2 flows this client is allowed to use |
+| `authenticationMethods` | How the client proves its identity (e.g. `client_secret_basic`) |
+| `redirectUris` | Allowed destinations for the authorization response |
+| `postLogoutRedirectUris` | Where to send the user after logout |
+| `scopes` | What data the client is permitted to request (`openid`, `email`, `profile`, etc.) |
+| `tokenSettings` | Per-client token lifetimes |
+| `clientSettings` | Whether PKCE is required, whether the user must explicitly consent |
+
+**Client secrets**
+
+The secret generation goes through `ClientSecret.generate()`, which uses `SecureRandom` to produce 32 random bytes, encodes them as base64url (giving a 43-character URL-safe string), and then runs the result through the `PasswordEncoder` before storing it. The plaintext is only ever returned once — at creation time in the API response — and the message makes this explicit:
+
+```
+"Store the client secret securely. It will not be shown again."
+```
+
+If a secret is compromised, there's a `/regenerate-secret` endpoint that generates a new one and returns the plaintext once. The old secret is immediately invalidated.
+
+**Token and client settings**
+
+`TokenSettings` holds per-client lifetimes: access token TTL (default 1 hour), refresh token TTL (default 24 hours), and authorization code TTL (default 5 minutes). The authorization code window is deliberately short — a code that sits unused for more than a few minutes is almost certainly not going to be exchanged legitimately.
+
+`ClientSettings` has two flags: `requireProofKey` (enforces PKCE — should be `true` for any public client, i.e., a browser-based app without a backend) and `requireAuthorizationConsent` (shows the user an explicit scope approval screen before redirecting). For internal services where the user already trusts the IDP operator, requiring consent on every login is unnecessary friction. For third-party clients, it's the right default.
+
+**Spring integration**
+
+This is where things get slightly awkward. Spring's Authorization Server machinery works through a `RegisteredClientRepository` interface — it uses this to look up clients during the authorization and token flows. But our domain model doesn't use Spring's `RegisteredClient` type; it uses `OidcClient`.
+
+The solution is a thin adapter: `JpaRegisteredClientRepository` implements Spring's interface and translates from our database entities into Spring's `RegisteredClient` type on the fly. Our management API never touches Spring's types — it only works with our domain model. Spring's auth flows never touch our domain model — they only see their own types. The adapter sits in between and keeps the two worlds isolated.
+
+All client management endpoints are guarded with `@PreAuthorize("hasAuthority('ROLE_ADMIN')")` at the controller level. There's no user-facing registration flow — this is a single-tenant IDP, and if you want a client registered, you do it through the admin panel.
+
+## Database Schema
+
+The schema is split into two concerns: user management and client management. Spring's Authorization Server adds its own tables on top, which we'll get to in Part 3.
+
+**Users**
+
+```sql
+CREATE TABLE users (
+    id          BIGSERIAL PRIMARY KEY,
+    username    VARCHAR(255) NOT NULL UNIQUE,
+    email       VARCHAR(255) NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL,
+    enabled     BOOLEAN NOT NULL DEFAULT true,
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP,
+    expires_at  TIMESTAMP
+);
+
+CREATE TABLE roles (
+    id   BIGSERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE  -- e.g. ROLE_ADMIN, ROLE_USER
+);
+
+CREATE TABLE user_roles (
+    user_id BIGINT REFERENCES users(id),
+    role_id BIGINT REFERENCES roles(id),
+    PRIMARY KEY (user_id, role_id)
+);
+```
+
+A few things worth noting. The `password` column stores a hash, never plaintext — that's enforced by the `Password` value object before anything reaches the database. `expires_at` provides account expiry without a separate status column — if it's null or in the future, the account is valid. Spring Security reads this through the `isAccountNonExpired()` method on `UserDatabaseEntity`. Roles are a separate table joined through `user_roles`, which keeps the role list extensible without a schema change.
+
+**OIDC Clients**
+
+```sql
+CREATE TABLE oauth_clients (
+    id                                VARCHAR(255) PRIMARY KEY,
+    client_id                         VARCHAR(255) NOT NULL UNIQUE,
+    client_secret                     VARCHAR(255) NOT NULL,
+    client_name                       VARCHAR(255) NOT NULL,
+    access_token_ttl_seconds          BIGINT,
+    refresh_token_ttl_seconds         BIGINT,
+    authorization_code_ttl_seconds    BIGINT,
+    reuse_refresh_tokens              BOOLEAN,
+    require_proof_key                 BOOLEAN,
+    require_authorization_consent     BOOLEAN,
+    client_id_issued_at               TIMESTAMP NOT NULL,
+    created_at                        TIMESTAMP NOT NULL,
+    updated_at                        TIMESTAMP NOT NULL
+);
+
+CREATE TABLE oauth_client_grant_types (
+    client_id  VARCHAR(255) REFERENCES oauth_clients(id),
+    grant_type VARCHAR(255)
+);
+
+CREATE TABLE oauth_client_authentication_methods (
+    client_id             VARCHAR(255) REFERENCES oauth_clients(id),
+    authentication_method VARCHAR(255)
+);
+
+CREATE TABLE oauth_client_redirect_uris (
+    client_id    VARCHAR(255) REFERENCES oauth_clients(id),
+    redirect_uri VARCHAR(1000)
+);
+
+CREATE TABLE oauth_client_post_logout_redirect_uris (
+    client_id              VARCHAR(255) REFERENCES oauth_clients(id),
+    post_logout_redirect_uri VARCHAR(1000)
+);
+
+CREATE TABLE oauth_client_scopes (
+    client_id VARCHAR(255) REFERENCES oauth_clients(id),
+    scope     VARCHAR(255)
+);
+```
+
+The one-to-many collections (grant types, redirect URIs, scopes, etc.) are each stored in their own table using JPA's `@ElementCollection`. This avoids the usual temptation of packing them into a comma-separated string in a single column — a pattern that's fine until you need to query on individual values or enforce referential integrity. The redirect URI columns are `VARCHAR(1000)` because some OAuth redirect URIs in real applications can be surprisingly long, particularly when they include path segments and query parameters.
+
+The `id` on `oauth_clients` is a UUID string (not a sequence) — it's the `OAuthClientId` value object, generated with `UUID.randomUUID()` at creation time. The `client_id` is separate and human-readable — something like `grafana` or `my-app`. They serve different purposes: the UUID is the internal stable identifier, the `client_id` is what shows up in authorization requests and the admin UI.
+
+## What's Coming Next
+
+Part 3 will get into the actual IDP backend — the `/authorize` endpoint, token issuance, and the JWKS endpoint. That's where things start to get interesting (and where most of the OIDC complexity lives).
+
+Source code is on [GitHub](https://github.com/HuseinJ/authentication-server) if you want to follow along.
