@@ -1,33 +1,9 @@
 import { error } from '@sveltejs/kit';
-import type { PageLoad } from './$types';
+import { loadPostBody } from '$lib/content/components';
 
-interface PostMetadata {
-  title: string;
-  date: string;
-  summary?: string;
-  tags?: string[];
+export async function load({ data, params }) {
+	const body = await loadPostBody(params.slug);
+	if (!body) error(404, `There is no post at /blog/${params.slug}.`);
+
+	return { ...data, body };
 }
-
-interface SvxModule {
-  default: any; // The Svelte component
-  metadata: PostMetadata;
-}
-
-export const prerender = true;
-
-export const load: PageLoad = async ({ params, parent }) => {
-  const { seo } = await parent();
-  
-  try {
-    const post = await import(`../../../posts/${params.slug}.svx`) as SvxModule;
-    
-    return {
-      content: post.default,
-      meta: post.metadata,
-      slug: params.slug,
-      seo
-    };
-  } catch (e) {
-    throw error(404, `Post "${params.slug}" not found`);
-  }
-};

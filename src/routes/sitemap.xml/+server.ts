@@ -1,46 +1,45 @@
+import { site } from '$lib/config/site';
+import { getPosts } from '$lib/server/posts';
+
 export const prerender = true;
 
-export async function GET() {
-  const postFiles = import.meta.glob('../../posts/*.svx', { eager: true });
+interface Entry {
+	path: string;
+	lastmod: string;
+	changefreq: 'weekly' | 'monthly';
+	priority: number;
+}
 
-  const posts = Object.entries(postFiles)
-    .map(([path, module]: [string, any]) => {
-      const slug = path.split('/').pop()?.replace('.svx', '') ?? '';
-      const date: string = module.metadata.date ?? '';
-      const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
-      return { slug, date: isValidDate ? date : null };
-    })
-    .filter(post => post.date !== null);
+export function GET() {
+	const posts = getPosts().filter((post) => /^\d{4}-\d{2}-\d{2}$/.test(post.date));
+	const newest = posts[0]?.date ?? new Date().toISOString().slice(0, 10);
 
-  const baseUrl = 'https://hjusic.com';
-  const today = new Date().toISOString().split('T')[0];
+	const entries: Entry[] = [
+		{ path: '', lastmod: newest, changefreq: 'weekly', priority: 1.0 },
+		{ path: '/blog', lastmod: newest, changefreq: 'weekly', priority: 0.8 },
+		...posts.map((post) => ({
+			path: `/blog/${post.slug}`,
+			lastmod: post.date,
+			changefreq: 'monthly' as const,
+			priority: 0.6
+		}))
+	];
 
-  const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+	const urls = entries
+		.map(
+			(entry) => `  <url>
+    <loc>${site.url}${entry.path}</loc>
+    <lastmod>${entry.lastmod}</lastmod>
+    <changefreq>${entry.changefreq}</changefreq>
+    <priority>${entry.priority.toFixed(1)}</priority>
+  </url>`
+		)
+		.join('\n');
+
+	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>${baseUrl}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>${baseUrl}/blog</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  ${posts.map(post => `
-  <url>
-    <loc>${baseUrl}/blog/${post.slug}</loc>
-    <lastmod>${post.date}</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>`).join('')}
+${urls}
 </urlset>`;
 
-  return new Response(sitemap, {
-    headers: {
-      'Content-Type': 'application/xml'
-    }
-  });
+	return new Response(xml, { headers: { 'Content-Type': 'application/xml' } });
 }
