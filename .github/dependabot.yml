@@ -10,6 +10,9 @@ updates:
       # SvelteKit, svelte-check and typescript-eslint don't support TypeScript 7 yet
       - dependency-name: "typescript"
         versions: [ ">=7" ]
+      # v3+ needs remark 13+, mdsvex still uses remark-parse 8
+      - dependency-name: "remark-footnotes"
+        versions: [ ">=3" ]
     groups:
       npm-minor-and-patch:
         update-types: [ "minor", "patch" ]
