@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Post } from '$lib/content/types';
-	import { formatDate, formatDayMonth } from '$lib/utils/date';
+	import type { Post } from '#lib/content/types';
+	import { formatDate, formatDayMonth } from '#lib/utils/date';
 	import TopicList from './TopicList.svelte';
 
 	interface Props {

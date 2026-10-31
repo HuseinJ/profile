@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { absoluteUrl, site } from '$lib/config/site';
-	import Seo from '$lib/components/seo/Seo.svelte';
-	import JsonLd from '$lib/components/seo/JsonLd.svelte';
-	import ArticleHeader from '$lib/components/article/ArticleHeader.svelte';
-	import TableOfContents from '$lib/components/article/TableOfContents.svelte';
-	import AuthorCard from '$lib/components/article/AuthorCard.svelte';
-	import PostNav from '$lib/components/article/PostNav.svelte';
+	import { absoluteUrl, site } from '#lib/config/site';
+	import Seo from '#lib/components/seo/Seo.svelte';
+	import JsonLd from '#lib/components/seo/JsonLd.svelte';
+	import ArticleHeader from '#lib/components/article/ArticleHeader.svelte';
+	import TableOfContents from '#lib/components/article/TableOfContents.svelte';
+	import AuthorCard from '#lib/components/article/AuthorCard.svelte';
+	import PostNav from '#lib/components/article/PostNav.svelte';
 
 	let { data } = $props();
 

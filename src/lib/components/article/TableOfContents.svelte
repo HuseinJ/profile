@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { TocEntry } from '$lib/content/types';
+	import type { TocEntry } from '#lib/content/types';
 
 	let { entries }: { entries: TocEntry[] } = $props();
 

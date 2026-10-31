@@ -1,5 +1,5 @@
-import type { Post, PostFrontmatter } from '$lib/content/types';
-import { collectTags, toTag } from '$lib/content/tags';
+import type { Post, PostFrontmatter } from '#lib/content/types';
+import { collectTags, toTag } from '#lib/content/tags';
 
 const frontmatter = import.meta.glob<PostFrontmatter>('/src/posts/*.svx', {
 	eager: true,

@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { links, site } from '$lib/config/site';
-	import Seo from '$lib/components/seo/Seo.svelte';
-	import JsonLd from '$lib/components/seo/JsonLd.svelte';
-	import Hero from '$lib/components/home/Hero.svelte';
-	import PostFeature from '$lib/components/posts/PostFeature.svelte';
-	import PostRow from '$lib/components/posts/PostRow.svelte';
+	import { links, site } from '#lib/config/site';
+	import Seo from '#lib/components/seo/Seo.svelte';
+	import JsonLd from '#lib/components/seo/JsonLd.svelte';
+	import Hero from '#lib/components/home/Hero.svelte';
+	import PostFeature from '#lib/components/posts/PostFeature.svelte';
+	import PostRow from '#lib/components/posts/PostRow.svelte';
 
 	let { data } = $props();
 </script>

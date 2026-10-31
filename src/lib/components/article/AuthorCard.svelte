@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { site } from '$lib/config/site';
+	import { site } from '#lib/config/site';
 </script>
 
 <aside class="author" aria-label="About the author">

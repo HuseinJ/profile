@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Post } from '$lib/content/types';
-	import PostMeta from '$lib/components/posts/PostMeta.svelte';
+	import type { Post } from '#lib/content/types';
+	import PostMeta from '#lib/components/posts/PostMeta.svelte';
 
 	let { post }: { post: Post } = $props();
 </script>

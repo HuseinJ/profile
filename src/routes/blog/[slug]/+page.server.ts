@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { getNeighbours, getPost, getPosts } from '$lib/server/posts';
+import { getNeighbours, getPost, getPosts } from '#lib/server/posts';
 
 export function entries() {
 	return getPosts().map((post) => ({ slug: post.slug }));
