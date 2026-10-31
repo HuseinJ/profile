@@ -9,6 +9,8 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [ "minor", "patch" ]
+      npm-major:
+        update-types: [ "major" ]
 
   - package-ecosystem: "github-actions"
     directory: "/"
