@@ -49,14 +49,17 @@
 />
 
 <article class="wrap article" class:has-toc={post.tableOfContents.length > 0}>
-	<div class="head">
-		<ArticleHeader {post} />
-	</div>
-
 	{#if post.image}
-		<figure class="cover">
+		<div class="hero">
 			<img src={post.image} alt="" />
-		</figure>
+			<div class="hero-content">
+				<ArticleHeader {post} onImage />
+			</div>
+		</div>
+	{:else}
+		<div class="head">
+			<ArticleHeader {post} />
+		</div>
 	{/if}
 
 	<div class="main">
@@ -96,6 +99,9 @@
 		.has-toc > :not(.main) {
 			grid-column: 2;
 		}
+		.has-toc > .hero {
+			grid-column: 1 / -1;
+		}
 		.has-toc .main {
 			grid-column: 1 / -1;
 			display: grid;
@@ -113,16 +119,41 @@
 		gap: 2.5rem;
 	}
 
-	.cover {
-		max-width: 52rem;
+	/* Cover image behind the header, darkened towards the bottom so the text stays readable */
+	.hero {
+		position: relative;
+		display: grid;
+		align-items: end;
+		min-height: clamp(26rem, 55vw, 38rem);
+		overflow: hidden;
+		border-radius: 3px;
+		background: var(--color-pine-deep);
 	}
 
-	.cover img {
+	.hero img {
+		position: absolute;
+		inset: 0;
 		width: 100%;
-		max-height: 34rem;
+		height: 100%;
 		object-fit: cover;
-		border-radius: 3px;
-		background: white;
+	}
+
+	.hero::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to top,
+			color-mix(in srgb, var(--color-pine-deep) 94%, transparent) 0%,
+			color-mix(in srgb, var(--color-pine-deep) 70%, transparent) 50%,
+			color-mix(in srgb, var(--color-pine-deep) 20%, transparent) 100%
+		);
+	}
+
+	.hero-content {
+		position: relative;
+		z-index: 1;
+		padding: clamp(1.5rem, 4vw, 3.5rem);
 	}
 
 	.after {

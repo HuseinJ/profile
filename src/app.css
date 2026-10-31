@@ -33,6 +33,13 @@
 		color-scheme: light;
 	}
 
+	/* Wider reading column on large desktops */
+	@media (min-width: 80rem) {
+		:root {
+			--measure: 48rem;
+		}
+	}
+
 	html {
 		background: var(--color-paper);
 		color: var(--color-ink);
