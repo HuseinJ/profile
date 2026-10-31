@@ -22,7 +22,7 @@
 		"@types/node": "^22",
 		"eslint": "^9.36.0",
 		"eslint-plugin-svelte": "^3.23.1",
-		"globals": "^16.4.0",
+		"globals": "^17.13.0",
 		"mdsvex": "^0.12.8",
 		"postcss": "^8.5.32",
 		"shiki": "^3.13.0",
