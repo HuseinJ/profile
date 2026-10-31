@@ -1,112 +1,195 @@
 ---
-title: "Hands-Off Updates: A CI/CD Pipeline for Side Projects That I Actually Trust"
+title: "Hands-Off Updates: Setting Up Dependabot Auto-Merge and GitOps Deploys Without Giving Up Security"
 date: "2026-11-01"
 author: "Husein Jusic"
-summary: "My side projects kept falling behind on dependencies. So I let Dependabot merge its own pull requests, and spent an evening making sure that can't go wrong."
+summary: "A step-by-step guide to a pipeline where dependency updates merge and deploy themselves when the build is green, and wait for you when it isn't. Nothing in CI ever gets credentials to production."
 tags: [security, ci-cd, github-actions, dependabot, kubernetes, flux, gitops]
 tableOfContents:
   - level: "h2"
-    title: "Introduction"
-    id: "introduction"
+    title: "Who This Is For"
+    id: "who-this-is-for"
   - level: "h2"
-    title: "The Setup"
-    id: "the-setup"
+    title: "Step 0: Decide the Rules"
+    id: "step-0-decide-the-rules"
   - level: "h2"
-    title: "The Rules I Wanted"
-    id: "the-rules-i-wanted"
+    title: "Step 1: Repository Settings"
+    id: "step-1-repository-settings"
   - level: "h2"
-    title: "Dependabot"
-    id: "dependabot"
+    title: "Step 2: A CI Workflow With Least Privilege"
+    id: "step-2-a-ci-workflow-with-least-privilege"
+  - level: "h2"
+    title: "Step 3: Dependabot"
+    id: "step-3-dependabot"
   - level: "h3"
-    title: "Grouping Updates"
-    id: "grouping-updates"
+    title: "Grouping"
+    id: "grouping"
   - level: "h3"
-    title: "Saying No to Some Versions"
-    id: "saying-no-to-some-versions"
+    title: "Ignoring What You Don't Want"
+    id: "ignoring-what-you-dont-want"
   - level: "h2"
-    title: "Auto-Merge, Gated by the Build"
-    id: "auto-merge-gated-by-the-build"
+    title: "Step 4: Auto-Merge Gated by CI"
+    id: "step-4-auto-merge-gated-by-ci"
   - level: "h3"
     title: "The GITHUB_TOKEN Trap"
     id: "the-github_token-trap"
-  - level: "h2"
-    title: "Branch Protection With Rulesets"
-    id: "branch-protection-with-rulesets"
-  - level: "h2"
-    title: "Publishing Images Only From Main"
-    id: "publishing-images-only-from-main"
-  - level: "h2"
-    title: "Deploying With Flux"
-    id: "deploying-with-flux"
   - level: "h3"
-    title: "Tags Flux Can Sort"
-    id: "tags-flux-can-sort"
+    title: "Variant: Humans for Majors"
+    id: "variant-humans-for-majors"
+  - level: "h2"
+    title: "Step 5: Protect Main With a Ruleset"
+    id: "step-5-protect-main-with-a-ruleset"
+  - level: "h2"
+    title: "Step 6: Publish Images Only From Main"
+    id: "step-6-publish-images-only-from-main"
+  - level: "h2"
+    title: "Step 7: Deploy by Pulling, Not Pushing"
+    id: "step-7-deploy-by-pulling-not-pushing"
   - level: "h3"
-    title: "Silently Broken for Months"
-    id: "silently-broken-for-months"
+    title: "Sortable Image Tags"
+    id: "sortable-image-tags"
+  - level: "h3"
+    title: "Alert on Silent Failures"
+    id: "alert-on-silent-failures"
   - level: "h2"
-    title: "Keeping the Registry Tidy"
-    id: "keeping-the-registry-tidy"
+    title: "Step 8: Clean Up the Registry"
+    id: "step-8-clean-up-the-registry"
   - level: "h2"
-    title: "What the Gate Caught on Day One"
-    id: "what-the-gate-caught-on-day-one"
+    title: "Step 9: Verify It End to End"
+    id: "step-9-verify-it-end-to-end"
   - level: "h2"
-    title: "What Is Still Missing"
-    id: "what-is-still-missing"
+    title: "Hardening Further"
+    id: "hardening-further"
+  - level: "h2"
+    title: "Pitfalls I Hit"
+    id: "pitfalls-i-hit"
   - level: "h2"
     title: "Wrapping Up"
     id: "wrapping-up"
 ---
 
-## Introduction
+## Who This Is For
 
-I run a handful of side projects on a small k3s cluster at home: an OAuth2 authorization server, the UI that goes with it, and this website. None of them get much attention once they work. Which is exactly the problem.
+You have a few projects on GitHub that build into container images and run somewhere, maybe a small Kubernetes cluster, maybe a single VM. They work, so you don't touch them, and six months later everything is three major versions behind and the base image is end-of-life.
 
-When I finally looked, the auth server was a full major version behind on Testcontainers, the site was still building on Node 20, and the cluster's image automation hadn't deployed a new frontend since July. Nothing was on fire. It had just quietly rotted.
+Dependabot fixes the "I forgot" part. What it doesn't fix is the review queue: fifteen pull requests nobody has time for, which is how I ended up with Dependabot PRs older than some of my projects.
 
-The obvious fix is Dependabot. The obvious problem with Dependabot is that it turns "my dependencies are outdated" into "I have fifteen pull requests to review", and I'm not going to review fifteen pull requests for a side project on a Tuesday night. So they'd sit there, and I'd be back where I started, just with more notifications.
+This guide sets up the version I actually wanted:
 
-What I actually wanted: updates that merge and deploy themselves when the tests pass, and stop and wait for me when they don't. Without handing the keys to my cluster to a bot. This is how I set that up in one evening, and the things that bit me along the way.
+- Updates **merge themselves when the build and tests pass**, and stop and wait for you when they don't.
+- A merge to `main` **builds, publishes and deploys** without anyone clicking anything.
+- Through all of that, **CI never gets a credential that could touch production**, pull requests can't publish anything, and every token has the minimum permissions.
 
-## The Setup
+I built this for a Spring Boot service, two SvelteKit frontends and a k3s cluster running Flux. The config below is mostly generic; where it isn't, I show the variants. Everything uses GitHub's built-in tokens, so there's nothing to create, rotate or leak.
 
-Three repositories and one cluster:
+Time needed: about an evening for the first repository, ten minutes for every repository after that.
 
-- **authentication-server**: Spring Boot 4, Java 25, Gradle, with integration tests against Postgres and Kafka via Testcontainers.
-- **authentication-server-ui**: SvelteKit with adapter-node.
-- **profile**: this site, SvelteKit with adapter-static behind nginx.
-- **hjusic-cluster**: the GitOps repository. Flux watches it and applies whatever is on `main` to a single-node k3s cluster.
+## Step 0: Decide the Rules
 
-Each app repo builds a container image into GitHub's container registry (GHCR). The cluster pulls from there.
+Write these down before touching YAML. Every config block below exists to enforce one of them, and when you're unsure about a setting, check it against this list.
 
-## The Rules I Wanted
-
-Before writing any YAML I wrote down what "safe enough" means for this:
-
-1. **Nothing reaches `main` without a green build.** Not me, not Dependabot.
-2. **CI never gets credentials to the cluster.** GitHub doesn't know my cluster exists. The cluster pulls; nothing pushes into it.
-3. **Pull requests never publish anything.** A PR can build and test, but it can't push an image or touch a registry.
-4. **Every token gets the least it needs.** Workflows declare their permissions explicitly instead of inheriting the repository default.
+1. **Nothing reaches `main` without a green build.** Not you, not a bot.
+2. **CI never holds credentials to the runtime.** GitHub Actions doesn't get a kubeconfig, SSH key or deploy webhook. The runtime pulls what it needs.
+3. **Pull requests never publish.** A PR can build and test, but it can't push an image, create a release or write to a registry.
+4. **Every token gets the least it needs.** Workflows declare their permissions explicitly, per job.
 5. **Breaking changes wait for a human.** If an update needs code changes, the build fails and the PR stays open. That's the signal, not a problem.
 
-The rest of this post is just those five rules turned into config.
+The threat model behind this: the most likely bad day is a compromised dependency or a compromised third-party Action. Rules 2–4 limit what either can do with your CI. Rule 1 and 5 limit what a merely broken update can do.
 
-## Dependabot
+## Step 1: Repository Settings
 
-The config lives in `.github/dependabot.yml`. Each repository watches three ecosystems: the language's package manager, GitHub Actions, and the Docker base images.
+Three settings in the repository, all under **Settings**:
+
+**General → Pull Requests**
+- **Allow squash merging**: on. The auto-merge job squashes, so this must be enabled.
+- **Automatically delete head branches**: on. Keeps Dependabot branches from piling up.
+- **Always suggest updating pull request branches**: optional, just gives you the "Update branch" button.
+
+**Actions → General → Workflow permissions**
+- Leave the default **Read repository contents and packages permissions**. Jobs that need more ask for it in their own `permissions` block. Don't flip this to read and write; that makes every job in every workflow writable by default.
+- **Allow GitHub Actions to create and approve pull requests**: off. Nothing here needs it.
+
+**Code security → Dependabot**
+- **Dependabot version updates**: on. This is what reads the config file in step 3. **Dependabot security updates** is worth turning on too; it opens PRs for known vulnerabilities outside the weekly schedule.
+
+## Step 2: A CI Workflow With Least Privilege
+
+Start with the workflow that runs on every pull request and every push to `main`. The important parts are the `permissions` at the top and the separation into jobs that the auto-merge can depend on later.
 
 ```yaml
+# .github/workflows/ci.yml
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # needed in step 4
+
+permissions:
+  contents: read       # the default for every job in this file
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - run: ./gradlew test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - run: ./gradlew build -x test
+```
+
+For a Node project, replace the setup and run steps:
+
+```yaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build
+```
+
+Two things to note:
+
+- **`permissions: contents: read` at the top** means no job in this file can write to the repository, packages or pull requests unless it says so itself. GitHub's rule: once you set any permission explicitly, everything you didn't mention becomes `none`.
+- **The job names (`test`, `build`) become the required status checks** in step 5. Pick names you're happy to keep.
+
+If this project has no tests, don't skip the workflow. A build that compiles is still a gate, and it's the only thing standing between a broken update and `main`. Just know that "green" then means "compiles", not "works".
+
+## Step 3: Dependabot
+
+The config lives at `.github/dependabot.yml`. Watch three ecosystems in every repository: the package manager, GitHub Actions, and the Docker base images.
+
+```yaml
+# .github/dependabot.yml
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: "npm"        # or gradle, maven, pip, cargo, go, …
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
+    open-pull-requests-limit: 10
     groups:
-      npm-minor-and-patch:
+      minor-and-patch:
         update-types: [ "minor", "patch" ]
-      npm-major:
+      major:
         update-types: [ "major" ]
 
   - package-ecosystem: "github-actions"
@@ -119,47 +202,47 @@ updates:
         patterns: [ "*" ]
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/"                   # where the Dockerfile lives
     schedule:
       interval: "weekly"
       day: "monday"
 ```
 
-Updating GitHub Actions matters more than it looks. Actions are code that runs with your repository's token. An outdated `actions/checkout` isn't just old, it's someone else's code with write access to your packages that you stopped reviewing.
+Don't leave out `github-actions`. Actions are code that runs with your repository's token. An outdated `actions/checkout` isn't just old; it's someone else's code with access to your workflow that you stopped looking at.
 
-### Grouping Updates
+### Grouping
 
-My first version only grouped minor and patch updates. The first run opened a separate pull request for every major update, and since nothing had been updated in a while, that was a lot of them, all at once.
+Without groups, the first run opens one pull request per outdated package. With a backlog that's easily fifteen PRs at once, and every merge makes the rest stale.
 
-Adding a second group for majors brought it down to at most four pull requests per repository per week: one for minor and patch, one for majors, one for Actions, one for base images. The trade-off is that one broken major blocks the whole group until I fix it. I'm fine with that. A blocked group is one PR to look at, not ten.
+The two groups above bring it down to at most four PRs per repository per week: minor-and-patch, major, Actions, Docker. The trade-off is that one broken major update blocks the whole major group until you fix it or exclude that package. For me that's the right trade: one blocked PR to look at instead of ten open ones.
 
-### Saying No to Some Versions
+Grouping only applies to new PRs. If you add groups later, the existing single PRs stay until the next scheduled run; close them by hand or wait.
 
-Two kinds of updates I don't want proposed at all:
+### Ignoring What You Don't Want
+
+Some updates you know will fail, or don't want proposed at all. Tell Dependabot instead of closing the same PR every week:
 
 ```yaml
     ignore:
-      # SvelteKit, svelte-check and typescript-eslint don't support TypeScript 7 yet
+      # Toolchain doesn't support TypeScript 7 yet
       - dependency-name: "typescript"
         versions: [ ">=7" ]
 ```
 
-TypeScript 7 is the rewrite in Go. It dropped the JavaScript API that the Svelte tooling and typescript-eslint use, so for now every build with it fails. No point getting that PR every week.
-
-The second one surprised me. Dependabot happily bumped the Node base image from 24 to 25. Node's odd-numbered releases are short-lived and 25 was already out of support. Dependabot can't tell an LTS release from a short-lived one, so I told it to leave Node majors alone and do those by hand:
+And for the Docker ecosystem, the one everyone needs:
 
 ```yaml
     ignore:
-      # Stay on the Node LTS line; move to the next LTS by hand
+      # Stay on the Node LTS line (even majors); move to the next LTS by hand
       - dependency-name: "node"
         update-types: [ "version-update:semver-major" ]
 ```
 
-Minor and patch updates of Node 24 still flow in automatically, and those are the ones with security fixes.
+Dependabot can't tell an LTS release from a short-lived one. For Node, odd-numbered majors are supported for about eight months, and Dependabot will happily move you onto one the week it's released. The `ignore` keeps you on the current even major while still bringing in its minor and patch releases, which is where the security fixes are. Do the jump to the next LTS by hand, together with the version in your CI workflow.
 
-## Auto-Merge, Gated by the Build
+## Step 4: Auto-Merge Gated by CI
 
-The actual auto-merge is a job at the end of the CI workflow. It only runs for Dependabot's pull requests, and only after the test and build jobs succeeded:
+Add one more job to the CI workflow from step 2. It only runs on Dependabot's pull requests, only after `test` and `build` succeeded, and it's the only job in the file with write access.
 
 ```yaml
   dependabot-auto-merge:
@@ -167,96 +250,189 @@ The actual auto-merge is a job at the end of the CI workflow. It only runs for D
     needs: [ test, build ]
     if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
     permissions:
-      contents: write
-      pull-requests: write
-      actions: write
+      contents: write        # merge
+      pull-requests: write   # merge
+      actions: write         # dispatch the follow-up build
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
       PR_URL: ${{ github.event.pull_request.html_url }}
     steps:
       - name: Merge pull request
         run: gh pr merge --squash --delete-branch "$PR_URL"
 
-      # Merges done with GITHUB_TOKEN don't trigger push workflows
+      # Merges done with GITHUB_TOKEN don't trigger push workflows,
+      # so start the build on main explicitly
       - name: Trigger build on main
         run: gh workflow run ci.yml --ref main
 ```
 
-A few details that matter here:
+Why this is safe enough:
 
-- **`needs`** is the whole gate. If tests fail, this job never starts, and the PR just sits there with a red check.
-- **Only this job can write to the repository.** The workflow-level permissions give the build jobs `contents: read`. This one job asks for `contents: write`, and only for the three scopes it actually uses.
-- **Dependabot gets no secrets.** Workflows triggered by Dependabot run with a read-only token and without access to Actions secrets. A `permissions` block can raise the token's scopes, but it can't hand out secrets. Nothing here needs one, so there's nothing for a malicious dependency update to steal.
-- **Major updates merge too**, if they pass. That's a deliberate choice. The test suite is the reviewer. If I didn't trust it for majors, I shouldn't trust it for minors either.
+- **`needs` is the gate.** If a test fails, this job never starts. The PR sits there with a red check until you look at it.
+- **Dependabot-triggered workflows get a read-only token and no Actions secrets.** A `permissions` block can raise the token's scopes, which is what this job does, but it can't hand out secrets. So even if an update were malicious, there's nothing in this workflow to steal: no cloud credentials, no registry token, no kubeconfig.
+- **Only this job can write**, and only the three scopes it uses.
+- **The author check** (`dependabot[bot]`) means a human's PR never gets merged by this, even with green checks.
+
+If the merge step fails with a permission error, check two things: squash merging is allowed (step 1), and the ruleset from step 5 doesn't require approvals.
 
 ### The GITHUB_TOKEN Trap
 
-This one cost me a while. After the first auto-merge, `main` had the new code, but no image got built.
+After the first auto-merge, `main` has the new commit, and nothing else happens. No build, no image, no deploy.
 
-GitHub doesn't start new workflow runs for events caused by `GITHUB_TOKEN`. It's a guard against workflows triggering each other in an endless loop. So a merge done by the token does not fire the `push` trigger on `main`.
+GitHub doesn't start new workflow runs for events caused by `GITHUB_TOKEN`. It's a guard against workflows triggering each other forever. So a merge performed by the token does not fire the `push` trigger on `main`.
 
-The one exception is `workflow_dispatch`. So the workflow gets a manual trigger, and the auto-merge job dispatches it on `main` right after merging. That's the second step above.
+The exceptions are `workflow_dispatch` and `repository_dispatch`. That's why step 2 added `workflow_dispatch` to the triggers, and why the job above ends with `gh workflow run ci.yml --ref main`. If your image build is a separate workflow that listens to `push`, dispatch that one instead (or chain it with `workflow_run`, as in step 6).
 
-## Branch Protection With Rulesets
+### Variant: Humans for Majors
 
-The workflow only enforces rule 1 for Dependabot. A ruleset on `main` enforces it for everyone:
+The job above merges major updates too, if they pass. That's deliberate: the test suite is the reviewer, and if I don't trust it for majors I shouldn't trust it for minors either.
+
+If you'd rather have majors wait for you, read the update type from Dependabot's metadata and gate on it:
+
+```yaml
+    steps:
+      - name: Fetch Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Merge pull request
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --squash --delete-branch "$PR_URL"
+```
+
+For grouped PRs, `update-type` is the highest type in the group, so a grouped major PR stays open as a whole.
+
+## Step 5: Protect Main With a Ruleset
+
+Step 4 enforces rule 1 for Dependabot. A ruleset on `main` (**Settings → Rules → Rulesets**) enforces it for everyone, including you on a tired Friday. These settings work with the auto-merge; several of the obvious-looking ones break it.
 
 | Rule | Setting | Why |
 |---|---|---|
-| Require a pull request | On, **0 required approvals** | With 1+ approvals, every Dependabot PR waits for me and nothing auto-merges. |
-| Require status checks | On, source: GitHub Actions | `test` and `build` must be green. Pinning the source stops anything else from posting a fake green check with the same name. |
-| Require branches to be up to date | **Off** | Otherwise every merge makes all other open Dependabot PRs stale, and they stop merging. |
-| Restrict updates | **Off** | Sounds safe, but it blocks every merge, including the auto-merge. |
+| Require a pull request before merging | On, **required approvals: 0** | With 1+ approvals, every Dependabot PR waits for your review and nothing auto-merges. For a solo project, approving your own PR is a click, not a review. The status checks are the review. |
+| Require status checks to pass | On: `test`, `build` | Set the source to **GitHub Actions**. Then nothing else can post a green check with the same name. Don't list `dependabot-auto-merge`; it's the job doing the merging, it can't also be a check the merge waits for. |
+| Require branches to be up to date before merging | **Off** | Every merge would make all other open Dependabot PRs stale, and they'd stop merging until rebased. |
+| Restrict updates | **Off** | Sounds like "protect main", actually means "only bypass actors may push", which blocks every merge including the auto-merge. |
 | Block force pushes | On | |
 | Restrict deletions | On | |
+| Require signed commits | Off | Squash merges by `GITHUB_TOKEN` aren't signed by you, and neither are the commits a GitOps tool will make in step 7. |
+| Require linear history | Optional | Fine with squash merges. |
 
-Zero required approvals looks wrong in a post about security. For a one-person project, though, an approval rule only adds a click where I approve my own work. The real review is the status checks, and those are required.
+Bypass list: add **Repository admin** if you ever want to push to `main` directly. Keep that for emergencies.
 
-The cluster repository is the exception. Flux commits new image tags directly to its `main`, so a pull-request rule there would block every deploy.
+If you also run a GitOps repository (step 7), don't apply this ruleset there. The deploy tool commits straight to its `main`, and a pull-request rule would block every deploy.
 
-## Publishing Images Only From Main
+## Step 6: Publish Images Only From Main
 
-Rule 3 means images are only built and pushed after a merge. Pull requests run a lightweight build (`npm run build` or the Gradle build) to prove the code compiles, but they never log in to a registry.
-
-For the auth server, the Docker workflow doesn't even listen to pushes. It waits for the CI workflow to finish on `main`:
+Rule 3: pull requests never publish. The image workflow doesn't listen to pull requests at all. It doesn't even listen to `push`; it waits for the CI workflow to finish on `main` and only runs if that succeeded.
 
 ```yaml
+# .github/workflows/docker.yml
+name: Docker
+
 on:
   workflow_run:
     workflows: [ CI ]
     types: [ completed ]
     branches: [ main ]
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+
 jobs:
   publish:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request'
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event != 'pull_request')
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # the exact commit that passed CI, not "whatever main is now"
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      # build your artifact here (./gradlew bootJar, npm run build, …)
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute sortable tag
+        id: tag
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: echo "value=main-${SHA::7}-$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=sha-${{ github.event.workflow_run.head_sha || github.sha }}
+            type=raw,value=${{ steps.tag.outputs.value }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 ```
 
-So an image only exists if the exact commit it was built from passed the full test suite. The checkout uses `github.event.workflow_run.head_sha`, not "whatever is on main now", so a second merge landing in between can't sneak an untested commit into the image.
+What this gives you:
 
-The workflow logs in to GHCR with the built-in `GITHUB_TOKEN`. No personal access token, nothing to rotate, nothing to leak.
+- **An image exists only for commits that passed the full test suite.** The `workflow_run` trigger plus the `conclusion == 'success'` check make that the rule, not a convention.
+- **The image is built from `head_sha`**, the exact commit CI tested. If a second merge lands while CI is still running, it can't sneak an untested commit into this image.
+- **Login uses `GITHUB_TOKEN`** with `packages: write`. No personal access token, nothing to rotate.
+- **The PR-triggered CI runs are excluded** by `workflow_run.event != 'pull_request'`. CI runs on PRs too, and completes successfully there, but those must not publish.
 
-## Deploying With Flux
+The `workflow_dispatch` branch exists for the GITHUB_TOKEN trap from step 4: a merge by the auto-merge job dispatches CI on `main`, that CI run completes, and `workflow_run` picks it up from there.
 
-This is where rule 2 comes from. The cluster runs Flux, and Flux pulls: it watches the Git repository and the container registry, and changes itself. GitHub Actions has no kubeconfig, no SSH key, no webhook into the cluster. Nobody can run `kubectl` against it from a workflow, and nobody can read its secrets from there.
+Packages on GHCR are private by default and tied to the repository that first pushed them. If the runtime needs to pull a private image, it needs a pull secret; see step 7 for where that lives.
 
-That doesn't make the pipeline harmless. If someone took over my workflows, they could push an image with a correctly shaped tag, and Flux would deploy it. That's the gap image signing would close, more on that at the end.
+## Step 7: Deploy by Pulling, Not Pushing
 
-Each app gets an `ImageRepository`, which scans the registry, and an `ImagePolicy`, which picks the newest tag:
+This is rule 2 and the part of the setup that lets me sleep. The runtime pulls; CI never pushes into it.
+
+For Kubernetes that means a GitOps controller. I use Flux; Argo CD with its Image Updater works the same way. The controller watches two things: the Git repository with the manifests, and the container registry. When a new image appears that matches a policy, it commits the new tag to the manifests and applies them.
+
+GitHub Actions has no kubeconfig, no SSH key, no webhook URL. If someone takes over your workflows, they can't run `kubectl`, can't read cluster secrets, can't reach the cluster at all.
+
+An `ImageRepository` scans the registry; an `ImagePolicy` picks the newest tag that matches a pattern:
 
 ```yaml
 apiVersion: image.toolkit.fluxcd.io/v1
+kind: ImageRepository
+metadata:
+  name: my-app
+  namespace: flux-system
+spec:
+  image: ghcr.io/you/my-app
+  interval: 5m
+  # secretRef: { name: ghcr-pull }   # only for private packages
+---
+apiVersion: image.toolkit.fluxcd.io/v1
 kind: ImagePolicy
 metadata:
-  name: auth-server
+  name: my-app
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: auth-server
+    name: my-app
   filterTags:
     pattern: '^main-[0-9a-f]+-(?P<ts>[0-9]+)$'
     extract: '$ts'
@@ -265,74 +441,140 @@ spec:
       order: asc
 ```
 
-The deployment manifest has a marker comment where the tag goes. Flux's `ImageUpdateAutomation` rewrites that line and commits it to the cluster repository:
+The manifest gets a marker comment on the line the controller may rewrite:
 
 ```yaml
 images:
-  - name: ghcr.io/huseinj/authentication-server
-    newTag: main-5c7844e-1793404362 # {"$imagepolicy": "flux-system:auth-server:tag"}
+  - name: ghcr.io/you/my-app
+    newTag: main-5c7844e-1793404362 # {"$imagepolicy": "flux-system:my-app:tag"}
 ```
 
-Every deploy is a Git commit, so every deploy has a diff, an author, and a revert button.
+One `ImageUpdateAutomation` per cluster scans the manifests for these markers and commits the changes. Every deploy becomes a Git commit with a diff, an author and a revert.
 
-Secrets stay out of all of this. The apps' configuration secrets live in 1Password, and the 1Password Kubernetes operator syncs them into the cluster. The images are public, so the cluster doesn't need a registry pull secret. If they were private, that pull secret would be one more `OnePasswordItem`, not a token pasted into a manifest.
+Secrets stay out of CI entirely. Application secrets live in a secret manager (1Password with its Kubernetes operator, in my case; External Secrets Operator with any backend works the same), and the cluster syncs them. A pull secret for private images is just one more item in that manager, never a token in a manifest or a workflow.
 
-### Tags Flux Can Sort
+Be honest about what this does and doesn't protect. CI can still publish a bad image with a correctly shaped tag, and the cluster would deploy it. The pull model removes the cluster credentials from CI; it doesn't verify what CI produced. That's what image signing is for, under hardening.
 
-`latest` is useless for this. Flux can't tell whether `latest` changed, and neither can I when I look at a running pod. A commit hash alone doesn't work either: hashes don't sort.
+### Sortable Image Tags
 
-Each image gets a tag with a timestamp: `main-<short-sha>-<unix-time>` for the auth server, `<YYYYMMDDHHmmss>-<short-sha>` for the frontends. Flux extracts the number and picks the highest. The commit hash is in there too, so I can always trace a running pod back to the commit it came from.
+`latest` is useless for automation: the controller can't tell whether it changed, and you can't tell which build a pod runs. A commit hash alone doesn't work either, hashes don't sort.
 
-### Silently Broken for Months
+Put a monotonically increasing number in the tag. `main-<short-sha>-<unix-time>` is what step 6 produces; `<YYYYMMDDHHmmss>-<short-sha>` is the other common shape. The policy extracts the number and picks the highest. The commit hash rides along so every running pod traces back to a commit.
 
-When I checked whether the new auth server image actually deployed, the image policies all showed the right newest tag. The deployments were still on old images. Flux's update automation had this status:
+### Alert on Silent Failures
 
-```
-template uses removed '.Updated' field. Please use '.Changed' instead.
-```
-
-A Flux upgrade had removed a field my commit message template used. Since then, the automation had failed on every single run. The policies kept resolving new tags, the automation kept refusing to commit them, and nothing deployed. The UI had been stuck on a July image. I hadn't noticed because "nothing new got deployed" looks exactly like "I didn't change anything".
-
-The fix was a three-line template change. The lesson is the part I still have to act on: an automation that fails silently is worse than no automation, because you stop checking by hand. Flux can send alerts when an object goes not-ready, and I should have had that from day one.
-
-## Keeping the Registry Tidy
-
-Every merge now produces an image, and with Dependabot merging weekly, they pile up. A scheduled workflow keeps the ten newest images and deletes the rest:
+An automation that fails quietly is worse than no automation, because you stop checking by hand. Flux's notification controller can post to Slack, Discord, a webhook or GitHub commit statuses whenever an object goes not-ready:
 
 ```yaml
-      - name: Delete old container images
-        uses: dataaxiom/ghcr-cleanup-action@v1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Provider
+metadata:
+  name: discord
+  namespace: flux-system
+spec:
+  type: discord
+  secretRef:
+    name: discord-webhook
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: on-error
+  namespace: flux-system
+spec:
+  providerRef:
+    name: discord
+  eventSeverity: error
+  eventSources:
+    - kind: Kustomization
+      name: '*'
+    - kind: ImageUpdateAutomation
+      name: '*'
+    - kind: ImageRepository
+      name: '*'
+```
+
+Set this up on day one. See the pitfalls section for why I'm insistent about it.
+
+## Step 8: Clean Up the Registry
+
+Every merge now produces an image, and with weekly auto-merges they pile up. A scheduled workflow keeps the ten newest and deletes the rest:
+
+```yaml
+# .github/workflows/ghcr-cleanup.yml
+name: GHCR Cleanup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        type: boolean
+        default: true
+
+permissions:
+  packages: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          package: ${{ github.event.repository.name }}
           keep-n-tagged: 10
           exclude-tags: latest
           delete-untagged: true
+          dry-run: ${{ github.event_name == 'workflow_dispatch' && inputs.dry-run }}
 ```
 
-I picked this action over GitHub's own `delete-package-versions` on purpose. Multi-platform images and build attestations are stored as several untagged manifests behind one tag. A naive "delete everything untagged" removes those pieces and breaks images that are still tagged and running. The newest image is always the one Flux deploys, so it's always among the ten that stay, and I can still roll back nine builds.
+Two deliberate choices. First, manual runs default to dry-run, so the first time you run it you get a list instead of deletions. Second, this action over GitHub's own `delete-package-versions`: multi-platform images and build attestations are stored as several untagged manifests behind one tag, and a naive "delete untagged" removes those pieces and breaks images that are still tagged and running. This one understands that structure.
 
-## What the Gate Caught on Day One
+Ten is enough that the image the cluster runs is always kept, with nine builds of rollback.
 
-The best argument for "the tests are the reviewer" is what happened in the first 24 hours. These are all updates that would have broken something, and none of them got merged on their own:
+## Step 9: Verify It End to End
 
-- **Java 25 needed Gradle 9.** Switching CI to the JDK the project targets broke the build with "Unsupported class file major version 69", because Gradle 8 can't run on Java 25. Caught by the first CI run.
-- **Testcontainers 2.0** renamed its modules and removed the container classes the tests used. The `test` job failed, the PR waited, and I migrated it by hand.
-- **SvelteKit 3** moved its configuration into the Vite config, removed `$lib`, and reorganized some `$app/*` modules. Both frontends' major groups failed their builds until I did the migration.
-- **TypeScript 7** broke the tooling, as described above, and is now ignored.
+Don't trust the setup until you've watched one update go through the whole way. The checklist I use for every new repository:
 
-Meanwhile, all the minor and patch updates, the Actions updates and the Gradle bumps merged and deployed without me touching them. That's the split I wanted: the boring 90% happens on its own, and the interesting 10% lands on my desk with a red check explaining why.
+1. **Trigger Dependabot by hand**: Insights → Dependency graph → Dependabot → Check for updates. Confirm the PRs come in grouped.
+2. **Watch a PR's checks**: `test` and `build` should run, `dependabot-auto-merge` should run after them, and the CI run should *not* include any publish step.
+3. **Confirm the merge happened**, the branch was deleted, and a new CI run appeared on `main` (from the dispatch).
+4. **Confirm the image workflow ran** after that CI run, and that the new tag is in the registry: `gh api /user/packages/container/<name>/versions` or just the Packages page.
+5. **Confirm the deploy**: for Flux, `flux get image policy -A` should show the new tag, the GitOps repo should have a `[flux] update image tags` commit, and `kubectl get deploy -o jsonpath='{..image}'` should match.
+6. **Break something on purpose**: push a branch with a failing test and open a PR. The auto-merge job must be skipped, and the merge button must be blocked by the ruleset.
+7. **Run the registry cleanup** in dry-run mode and check the list is what you expect.
 
-## What Is Still Missing
+If step 3 happens but step 4 doesn't, you've hit the GITHUB_TOKEN trap. If step 4 happens but step 5 doesn't, check `flux get all -A` for anything not ready before suspecting the tags.
 
-This is "secure enough for side projects", not "done". The gaps I know about:
+## Hardening Further
 
-- **Actions aren't pinned by commit SHA.** `actions/checkout@v4` is a tag, and tags can be moved. Pinning to SHAs (with Dependabot updating the pins) closes that.
-- **Images aren't signed.** Signing with cosign in CI and having Flux verify the signature before deploying would mean a leaked registry token alone isn't enough to get code onto the cluster.
-- **No alerting on Flux.** See above. This one is next.
-- **Tests are the only reviewer.** Good tests catch broken builds. They don't catch a dependency that works perfectly and also does something malicious. The weekly schedule and grouping at least mean I can skim one PR description per ecosystem instead of fifteen.
+What the setup above doesn't do, roughly in the order I'd add them:
+
+- **Pin Actions to commit SHAs.** `actions/checkout@v4` is a tag, and tags can be moved by whoever controls the repository. `actions/checkout@<sha> # v4.2.2` can't. Dependabot updates SHA pins and keeps the version comment current, so the maintenance cost is zero once it's set up.
+- **Sign images, verify before deploy.** `cosign sign` in the publish workflow with GitHub's OIDC identity (keyless, nothing to store), and an admission policy in the cluster (Kyverno or Sigstore's policy-controller) that rejects unsigned images. This closes the gap from step 7: a compromised workflow that pushes a bad image still can't get it deployed without the publish workflow's identity.
+- **Require the publish workflow's identity, not just a signature.** The signing certificate carries the workflow path and repository. Verify those, not just "signed by someone at GitHub".
+- **Scan images.** Trivy or Grype in the publish workflow, failing on critical findings, catches the base-image CVEs that no amount of dependency updating fixes.
+- **Enable Dependabot security updates** separately from version updates, so a CVE doesn't wait for Monday.
+
+The thing none of this fixes: the tests are the reviewer. They catch an update that breaks something. They don't catch an update that works perfectly and also does something it shouldn't. Grouping and the weekly cadence at least mean skimming one PR per ecosystem is realistic. Pinning and signing mean a compromised *tool* can't quietly widen the blast radius.
+
+## Pitfalls I Hit
+
+Everything in this guide is shaped by something going wrong in the first 24 hours. The short list:
+
+- **CI on a JDK the build tool can't run on.** Switching CI to Java 25 failed with "Unsupported class file major version 69" because Gradle 8 can't run on it. Match the toolchain in `build.gradle`, the JDK in CI, and the Gradle wrapper version together.
+- **The GITHUB_TOKEN trap.** Merges happened, nothing built. See step 4.
+- **"Require branches to be up to date"** quietly stalled every Dependabot PR after the first merge.
+- **Grouping only minor and patch** left me with nine separate major PRs on day one.
+- **Node 25.** Dependabot moved the base image from the LTS to a short-lived release that was already out of support. Hence the `ignore` in step 3.
+- **TypeScript 7** broke the Svelte tooling and typescript-eslint. Ignored until the tools catch up.
+- **A deploy automation broken for months.** My Flux image automation had been failing every run with `template uses removed '.Updated' field` since a Flux upgrade. Image policies resolved new tags; the automation refused to commit them; one frontend sat on a July image. "Nothing deployed" looks exactly like "I didn't change anything". That's why step 7 ends with alerting.
+- **Breaking majors that did their job.** Testcontainers 2.0 and SvelteKit 3 both failed their builds, both stayed open, both got migrated by hand later. The boring 90% merged on its own; the interesting 10% landed on my desk with a red check explaining why. That split is the whole point.
 
 ## Wrapping Up
 
-The whole setup is maybe a few hundred lines of YAML across four repositories, and most of it is copy-paste between them. What made it work wasn't any single tool. It was deciding the rules first (green build or nothing, pull not push, least privilege, humans for breaking changes) and then checking that each piece of config enforces one of them.
+The full setup is a few hundred lines of YAML, and after the first repository it's copy-paste with the ecosystem name changed. What made it work wasn't a tool. It was writing the five rules down first and checking every setting against them, which is also how I noticed that several of the "safer-looking" ruleset options would have silently turned the automation off.
 
-The part I'll remember is that the riskiest thing in the pipeline wasn't the bot merging pull requests. It was the automation that had been quietly broken for months without anyone noticing.
+And the thing I'll actually remember: the riskiest part of the pipeline wasn't the bot merging pull requests. It was the piece of automation that had been quietly broken for months while I assumed it was fine.
