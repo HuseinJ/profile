@@ -3,10 +3,11 @@
 	import type { Post } from '#lib/content/types';
 	import PostMeta from '#lib/components/posts/PostMeta.svelte';
 
-	let { post }: { post: Post } = $props();
+	// onImage: rendered on top of the cover image, so switch to light text
+	let { post, onImage = false }: { post: Post; onImage?: boolean } = $props();
 </script>
 
-<header class="article-header">
+<header class="article-header" class:on-image={onImage}>
 	<a class="back text-link" href={resolve('/blog')}>All writing</a>
 
 	<h1>{post.title}</h1>
@@ -69,5 +70,26 @@
 		padding: 0.15rem 0.55rem;
 		border: 1px solid var(--color-rule);
 		border-radius: 2px;
+	}
+
+	.on-image,
+	.on-image h1 {
+		color: var(--color-paper);
+	}
+
+	.on-image .back {
+		color: var(--color-lichen);
+	}
+
+	.on-image :global(.meta) {
+		color: color-mix(in srgb, var(--color-paper) 75%, transparent);
+	}
+
+	.on-image :global(.meta em) {
+		color: var(--color-paper);
+	}
+
+	.on-image .tags li {
+		border-color: color-mix(in srgb, var(--color-paper) 40%, transparent);
 	}
 </style>
