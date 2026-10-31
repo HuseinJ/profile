@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { loadPostBody } from '$lib/content/components';
+import { loadPostBody } from '#lib/content/components';
 
 export async function load({ data, params }) {
 	const body = await loadPostBody(params.slug);

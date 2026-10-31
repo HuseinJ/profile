@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import { site } from '$lib/config/site';
+	import { site } from '#lib/config/site';
 
 	const onHome = $derived(page.url.pathname === '/');
 	const inWriting = $derived(page.url.pathname.startsWith('/blog'));

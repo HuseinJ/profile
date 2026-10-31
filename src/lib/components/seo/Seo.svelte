@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { absoluteUrl, site } from '$lib/config/site';
+	import { absoluteUrl, site } from '#lib/config/site';
 
 	interface Props {
 		title: string;

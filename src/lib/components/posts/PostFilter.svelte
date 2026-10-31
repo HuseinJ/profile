@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Tag } from '$lib/content/types';
+	import type { Tag } from '#lib/content/types';
 
 	interface Props {
 		tags: Tag[];

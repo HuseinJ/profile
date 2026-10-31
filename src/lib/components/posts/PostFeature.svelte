@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Post } from '$lib/content/types';
+	import type { Post } from '#lib/content/types';
 	import PostMeta from './PostMeta.svelte';
 	import TopicList from './TopicList.svelte';
 

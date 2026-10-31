@@ -1,4 +1,4 @@
-import { getPosts } from '$lib/server/posts';
+import { getPosts } from '#lib/server/posts';
 
 export function load() {
 	return { posts: getPosts() };
