@@ -57,7 +57,7 @@ tableOfContents:
 
 You have a few projects on GitHub that build into container images and run somewhere. They work, so you don't touch them, and six months later everything is three majors behind and the base image is end-of-life.
 
-Dependabot fixes the "I forgot" part. It doesn't fix the review queue: fifteen pull requests nobody has time for. This guide sets up the version I actually wanted:
+Dependabot fixes the "I forgot" part. It doesn't fix the review queue. This guide sets up the version I actually wanted:
 
 - Updates **merge themselves when the build is green**, and wait for you when it isn't.
 - A merge to `main` **builds, publishes and deploys** without anyone clicking anything.
