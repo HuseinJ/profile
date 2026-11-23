@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@ampproject/remapping@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@ampproject/remapping/-/remapping-2.3.0.tgz#ed441b6fa600072520ce18b43d2c8cc8caecc7f4"
+  integrity sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw==
+  dependencies:
+    "@jridgewell/gen-mapping" "^0.3.5"
+    "@jridgewell/trace-mapping" "^0.3.24"
+
 "@cacheable/memory@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@cacheable/memory/-/memory-2.2.0.tgz#72aeb8b051f6d597d10ac8595b94ad8302bd2239"
@@ -222,6 +230,18 @@
   resolved "https://registry.yarnpkg.com/@keyv/serialize/-/serialize-1.1.1.tgz#0c01dd3a3483882af7cf3878d4e71d505c81fc4a"
   integrity sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==
 
+"@mdsvex/parse@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@mdsvex/parse/-/parse-1.0.0.tgz#06408dcf1e63ae2b59757ece8ef1bd7a63c11a07"
+  integrity sha512-Sry8euoZgvG+GSFsuvI1KhZXXIePe+WQwddXcQEkd4UKBvjx5KCtOHMam9Cwd+li3URRKs4LjvauCaXwz706MA==
+
+"@mdsvex/render@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@mdsvex/render/-/render-1.0.0.tgz#2e69c404f94b76fb7c79dc36c2493edd2164c0b9"
+  integrity sha512-lCAWapnbu5jUEsRjxv/vq7Y7MMri12WoNYyh54uLaiyIe1Zv3+kgbyXqSW1Sl35uQrYRORqUvcTu+4Wab59hiQ==
+  dependencies:
+    "@mdsvex/parse" "1.0.0"
+
 "@napi-rs/wasm-runtime@1.2.6":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@napi-rs/wasm-runtime/-/wasm-runtime-1.2.6.tgz#bc856c4ab60cd9c6c8e4432b5d6f50ceba0ca8f4"
@@ -409,10 +429,10 @@
   resolved "https://registry.yarnpkg.com/@sveltejs/acorn-typescript/-/acorn-typescript-1.0.13.tgz#8c7c3cc7014e212f2e8fccee0159dbecfe602405"
   integrity sha512-wgKggnhZVL9Bfx1OaKKTrYY9BFRk6C8UAkQNUcIv1+llzYrIqy+RZm5HPKzn0NpEBvTVhTqB4kQyllZywsRBRQ==
 
-"@sveltejs/adapter-auto@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@sveltejs/adapter-auto/-/adapter-auto-8.0.1.tgz#ff1be25f96340e904b8f596fecd1c20f9e37cd71"
-  integrity sha512-JXpRDJy/HxzhZsGS68C/SZ8BlndsfcGf/0X73WB05DAQJMR4Vi6k0hBYT+ZPgPxU4L0+G+irAHPN05YNCCGszA==
+"@sveltejs/adapter-auto@^9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@sveltejs/adapter-auto/-/adapter-auto-9.0.0.tgz#babb9c80f1c6bb717493a3367e1d0afbc86e4007"
+  integrity sha512-AV89HWxrAWoT6/TmuALWcLookGPmIsv1mDIxKORRvf0fjHWr9qX753FU/xPFh9fsmF84abrvK79Czr5HmIIPhw==
 
 "@sveltejs/adapter-static@^4.0.1":
   version "4.0.1"
@@ -556,6 +576,222 @@
     "@tailwindcss/oxide" "4.3.5"
     tailwindcss "4.3.5"
 
+"@twinkleplop/annotation@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/annotation/-/annotation-0.1.8.tgz#d826ea48b59b8c01f9a3b80cc628a90c4f7f30fd"
+  integrity sha512-9q2sxaq3Z1b9N6FfAZEjrvkyfkHUocWoPY9cpeMCJgcA3rKvM0ZZiaZQ/DjxiaKaCe/CevTgYBaDf/urSWPL1A==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/bash@0.1.8", "@twinkleplop/bash@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/bash/-/bash-0.1.8.tgz#318445f1fdfc313820ae6698d5b98651db1b978c"
+  integrity sha512-7YQWMDIyHTWz8HUSM+0PxpTkpY9uX4koSi5+JcBSgImLjSdBnwvkXAY6uAVy2yKKvZjMuwMPyja9Z874/COzTA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/c@0.2.2", "@twinkleplop/c@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/c/-/c-0.2.2.tgz#294981d25137eb1f422656afdfa3de5871aa15aa"
+  integrity sha512-r1J5Ka3SARUtBGblNKXTwZ1dRizuBnLu1LkBx7j60bUUZ2Q6RI3xV3eWRlvlYKTtkp2RO45vuieIUO2F3xHDxA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/core@0.3.2", "@twinkleplop/core@^0.3.1":
+  version "0.3.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/core/-/core-0.3.2.tgz#43fe11b7f347985643eac969df527abedc74c38e"
+  integrity sha512-K4sKQFqTSpEjFz4eCmJGQA6ivtZgpBKdZzu3AzKIP5jwstJWHPI5eWtJgfv6vTsxDVHr3WY02gXnwL3+Rzndhg==
+
+"@twinkleplop/cpp@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/cpp/-/cpp-0.2.2.tgz#8e561eadd8567788add2748bf52f9af671d4c2cd"
+  integrity sha512-xALrIf20zkj0pXc1ML5DnRJpGfrEbykI3+OVlD5my1uwVT6b1uz6vntSWVxqwRzECs0yVjQYCOZG0/Gys6LtbQ==
+  dependencies:
+    "@twinkleplop/c" "0.2.2"
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/css@0.1.8", "@twinkleplop/css@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/css/-/css-0.1.8.tgz#d0bcc42b483f6f700643bb305cee99a4b1aa12be"
+  integrity sha512-OwPt+cYSOUP3sVXq7Zt6pWVY4ce87t1EUgyHakhz36TGxYitnIA7DXeFmoyHCnFW8ZjfNjKCa8HAwARLTZstmQ==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/diff@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/diff/-/diff-0.1.8.tgz#92e3008eba28a684ec81d2c8d06fd6e18cfead60"
+  integrity sha512-sHLxvIqyEkZb76dGWwLuwvSC05PraIdllIDShyXjnr7nxXkBfE6nay4rjgZeIw96wc+pOcW3PMtUBfA+H+3wHw==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/dockerfile@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/dockerfile/-/dockerfile-0.2.2.tgz#ace68db9ca59cc6c96f6de840d5ee110b141022a"
+  integrity sha512-QtuE6WRWjUIRp7MCwDE6XF3Ug1Qcs5jd8p9n4Mn9BJ7PA2FZRHji8fdcs7PauqVHK0POPI5JGYhHJ9ShBKEZvA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/dotenv@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/dotenv/-/dotenv-0.1.8.tgz#e8c90f2022d518356b850ab984f87c5a5d88ada1"
+  integrity sha512-NYxBNOVGfc3J0D3hifwzAKBLLEgOKXZCT8IJENmrled5qmmBmNAJRgSMdnXNeKjY6fwIMOmylIz5E8U6IIn4zg==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/go@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/go/-/go-0.1.8.tgz#e2e54e584859ddcae5b9f9a042b893f8c54e1001"
+  integrity sha512-MJYIw+COehNkaMMGeXIXXGNE3tWwgGp6C1ln2OjbSmbvpYuXOnHDFngiki2VCyGl1p1Ntvg4lSFQkcrm9oRuzw==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/graphql@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/graphql/-/graphql-0.2.2.tgz#62d29e662fefd9a6bd633b7b58c2f55ce67d9005"
+  integrity sha512-R3nTo+voWyMbP12H3WJz31M2pNI1ewtxfRZ9Cu9j23cll7bZNMKGvHacYHVWA/4s3tZ3rmXjTBvOPvJFtw6sWQ==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/html@0.1.8", "@twinkleplop/html@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/html/-/html-0.1.8.tgz#b47049e28fc59c58d280c3fe1885d954e48a0c5f"
+  integrity sha512-j9AnYXx7u53UmXYEcw6CztJMRpC9VqGPxk9ahR+vUUfU7tlWRzKrSP8OwPW5pVki32SDeeak+NU2fjvsru/BEA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/css" "0.1.8"
+    "@twinkleplop/javascript" "0.1.8"
+
+"@twinkleplop/http@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/http/-/http-0.1.8.tgz#e90b7d179d2e9779a53dba99e678b8d202b83ac5"
+  integrity sha512-9NnzNua6FoYzkX4aCwlmcRVac4yhLZl6p9z9pZUvK6hTmbfkukI1q4es+xPMXsmUc1ZWo0D/qsPfZjkkl3bcDw==
+  dependencies:
+    "@twinkleplop/bash" "0.1.8"
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/html" "0.1.8"
+    "@twinkleplop/javascript" "0.1.8"
+    "@twinkleplop/json" "0.1.8"
+
+"@twinkleplop/ini@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/ini/-/ini-0.1.8.tgz#bf1530ea6667689764b67903807716d7e42a16ec"
+  integrity sha512-qIjXHx2zNxCE4klIqlsQo4kXXRgchLYUM8KBYGEDGUZ0pv1EQ/Eg1Y3ij2ahp3L2MUHOcdXvi4ZCT1kqYO2PyA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/javascript@0.1.8", "@twinkleplop/javascript@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/javascript/-/javascript-0.1.8.tgz#844c8f071002bc9799df31b5e16c52e3373b648c"
+  integrity sha512-2VAws4GFrZ19Gfr7s6/cxoATIqVbOYEsmsASu1YZaPo/qBW7sLVqoWQlN7Ft1qakudgdoPFx7s71Caeyn+2C5g==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/css" "0.1.8"
+    "@twinkleplop/html" "0.1.8"
+
+"@twinkleplop/json@0.1.8", "@twinkleplop/json@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/json/-/json-0.1.8.tgz#292e7fb21e5d8598ae757cd09a389ee4e102579c"
+  integrity sha512-xa78PV+DSwZJRKkQ70ssk7aVgGU15OHZ54miC7jWklr7XLS74nie7B0fCX4fhQ3S9Z+pvHFimPE84cC0jz1Lbw==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/jsonc@^0.1.4":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/jsonc/-/jsonc-0.1.5.tgz#9cc7c3533df0f4568b128d123ee700f70859730b"
+  integrity sha512-G/6vtBAnbRH2XYR+5TRQHh9N5WnkXjl8u0CQxAXGAD/z07Ze+0XcMifxeS5YZZIYTqUcEdFDbjpfHqi3qnk1wA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/markdown-core@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/markdown-core/-/markdown-core-0.2.2.tgz#dab5e09b992fecbcf0f34e3d3d7582293d2cd239"
+  integrity sha512-PCQQFHGA4wRg3X4XGfiIv5z4ZePza8FHJEPWCiL19qkWnWHqR0JiDUnVmBIyc/YbxpCjhJjFe4r1JohWkJBZTQ==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/markdown@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/markdown/-/markdown-0.2.2.tgz#c50652e1153607b7bcd53f0a1f6bec69cf3c0c22"
+  integrity sha512-ZUlqqJsLwQcGce932GjcyPwOSk2C2fxlmSGVOUP8gi2p6wZ3WMxqH/7LELoEBoARyX6uE6ajfFBK5tgv2MI95g==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/powershell@^0.2.1":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/powershell/-/powershell-0.2.2.tgz#1138ff11bcc987cf3e1ae23151c55a902c0df5a0"
+  integrity sha512-BdGdoYhfnWEnY0IU1IdmLX8hqJPZl3EiDYcbRo2MCmeRcZolHGAX3FIh1QNqhNKt6n/hHVoyNq9ln4wSoUkl2A==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/python@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/python/-/python-0.1.8.tgz#aad931a8322d8c8e8071c742929f2ed3a86f9b52"
+  integrity sha512-Du17Wr9xLYZccA9onbFlNjUkqS/WoAhjKGbB4NtwjlvLic1Rqqu7QsQw/VrbX861ryGOHefdNU/ANVqkasFXtg==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/rust@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/rust/-/rust-0.1.8.tgz#31491f2a394c356b08972f725fe581063ec2166b"
+  integrity sha512-wSS1KrX6oX6N4iCEL2O10Eg2Nv6qk5+WWSfyJ2KC+lHPPwaTdeNY+U+GVdXK/9jRW6Js338qUR+mk7J7TjrnvA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/shellsession@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/shellsession/-/shellsession-0.1.8.tgz#30432308b42c7c321ee3527f483833ad1102e268"
+  integrity sha512-seia9ihaCmPHO/38kKWiT9J0O5Dfcm1pzH6PJ3Ntz9qhvDsAlLPpl5gzS6l+SBb077SLQKSZUweKTvzVyx3WNg==
+  dependencies:
+    "@twinkleplop/bash" "0.1.8"
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/sql@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/sql/-/sql-0.1.8.tgz#7a3fd718d570401c4884fb7720757acec7d4c574"
+  integrity sha512-JJfsnRpz0mFFlfMWJhm45Q3L5A54MXom+nV6pCJ6lR6LpBt0vZrtRSJkVNhMH83pyrwT08iAy2ZGFu7ptPB8RQ==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/svelte@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/svelte/-/svelte-0.1.8.tgz#80b8c6879ab5ace054aaf1d4b072bd3918ca7fc0"
+  integrity sha512-9gJ6QwdcxR8ns2Mg7CRqSHr3eFhUikB2RT9r5moKcx/cZncSOGfyn5erwT80r3SBBb4nzO2qPiaGHhcuAem4Cw==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/css" "0.1.8"
+    "@twinkleplop/javascript" "0.1.8"
+
+"@twinkleplop/toml@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/toml/-/toml-0.1.8.tgz#1b877a91b2712f519bf369313041183ac04ae5c6"
+  integrity sha512-wGFytm/RPS9UsjyDfqKWDlJ2pDuCzE3Qz9rdPAVVzF9j3QaWQKYyb91bcWd9GtuWvnhTqhbqQCNB/vKnb6I4dg==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
+"@twinkleplop/tsx@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/tsx/-/tsx-0.1.8.tgz#31d9172ae62574e220241d3591df4e7557d4a805"
+  integrity sha512-6+mY1LeZAk6nu7qpoYFEhvbq9XjXbdkkCbN+oJRZ/p+Ef1EOdtit6hxYOsy61vGMKK8p9qVRziltycb6pygU4A==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/javascript" "0.1.8"
+    "@twinkleplop/typescript" "0.1.8"
+
+"@twinkleplop/typescript@0.1.8", "@twinkleplop/typescript@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/typescript/-/typescript-0.1.8.tgz#6e52f3418c88e92f3dc596528298ef74d3c37894"
+  integrity sha512-5f0xc1HyY4YjwNUgLWX09T8tnKn5QrigLrOw+BLT0nQ+WWkeHeI7Knt8gmOnndba7H1fKLI1+kWOuNuHioX+5A==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+    "@twinkleplop/javascript" "0.1.8"
+
+"@twinkleplop/yaml@^0.1.7":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@twinkleplop/yaml/-/yaml-0.1.8.tgz#9e50bdbc8a204f9f1400c5dbce4c613add005af9"
+  integrity sha512-qtqjMBQCU8EhDN2X7Et/ZY4CIoliHfdS/dbTLS8y/Ij6REc6L3qpGb88ykj0JkmrNHi9Daqeintnft0zXPgDTA==
+  dependencies:
+    "@twinkleplop/core" "0.3.2"
+
 "@tybys/wasm-util@^0.10.3":
   version "0.10.4"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.4.tgz#3e85ecb266f9d1722250e89bc69528615720b154"
@@ -585,7 +821,7 @@
   resolved "https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.15.tgz"
   integrity sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==
 
-"@types/mdast@^4.0.0", "@types/mdast@^4.0.4":
+"@types/mdast@^4.0.0":
   version "4.0.4"
   resolved "https://registry.npmjs.org/@types/mdast/-/mdast-4.0.4.tgz"
   integrity sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==
@@ -603,11 +839,6 @@
   version "3.0.3"
   resolved "https://registry.npmjs.org/@types/unist/-/unist-3.0.3.tgz"
   integrity sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==
-
-"@types/unist@^2.0.0", "@types/unist@^2.0.2", "@types/unist@^2.0.3":
-  version "2.0.11"
-  resolved "https://registry.npmjs.org/@types/unist/-/unist-2.0.11.tgz"
-  integrity sha512-CmBKiL6NNo/OqgmMn95Fk9Whlp2mtvIv+KNpQKN2F4SjvrEesubTRWGYSg+BnWZOnlCaSTU1sMpsBOzgbYhnsA==
 
 "@typescript-eslint/eslint-plugin@8.73.0":
   version "8.73.0"
@@ -860,6 +1091,11 @@ enhanced-resolve@^5.24.5:
   dependencies:
     graceful-fs "^4.2.4"
     tapable "^2.3.3"
+
+es-module-lexer@^1.6.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/es-module-lexer/-/es-module-lexer-1.7.0.tgz#9159601561880a85f2734560a9099b2c31e5372a"
+  integrity sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==
 
 escape-string-regexp@^4.0.0:
   version "4.0.0"
@@ -1340,17 +1576,45 @@ mdast-util-to-hast@^13.0.0:
     unist-util-visit "^5.0.0"
     vfile "^6.0.0"
 
-mdsvex@^0.12.8:
-  version "0.12.8"
-  resolved "https://registry.yarnpkg.com/mdsvex/-/mdsvex-0.12.8.tgz#efadca2c614872c0b34d9ac6a74a71dccb69a9a0"
-  integrity sha512-v2sbRA9QWf0tpYWfREI5Kq7OqqrqoUzfmMKbgdOoWGfPDLc1JYU4EgDDF0N9WFhmjFW5agKrYwo/mDVutBKWKw==
+mdsvex@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/mdsvex/-/mdsvex-1.0.1.tgz#1e7b7d909062021731990073a19aafda368cfa38"
+  integrity sha512-A+27ORoQLmJ2YtxM7hrlMW4LFfPEwzbf/yq30C8EKE3sEE86TKD9FvFM9pRjWMRs49jEDEwoKFWtT9JBxRoM3w==
   dependencies:
-    "@types/mdast" "^4.0.4"
-    "@types/unist" "^2.0.3"
-    prism-svelte "^0.4.7"
-    prismjs "^1.17.1"
-    unist-util-visit "^2.0.1"
-    vfile-message "^2.0.4"
+    "@ampproject/remapping" "^2.3.0"
+    "@mdsvex/parse" "1.0.0"
+    "@mdsvex/render" "1.0.0"
+    "@twinkleplop/annotation" "^0.1.7"
+    "@twinkleplop/bash" "^0.1.7"
+    "@twinkleplop/c" "^0.2.1"
+    "@twinkleplop/core" "^0.3.1"
+    "@twinkleplop/cpp" "^0.2.1"
+    "@twinkleplop/css" "^0.1.7"
+    "@twinkleplop/diff" "^0.1.7"
+    "@twinkleplop/dockerfile" "^0.2.1"
+    "@twinkleplop/dotenv" "^0.1.7"
+    "@twinkleplop/go" "^0.1.7"
+    "@twinkleplop/graphql" "^0.2.1"
+    "@twinkleplop/html" "^0.1.7"
+    "@twinkleplop/http" "^0.1.7"
+    "@twinkleplop/ini" "^0.1.7"
+    "@twinkleplop/javascript" "^0.1.7"
+    "@twinkleplop/json" "^0.1.7"
+    "@twinkleplop/jsonc" "^0.1.4"
+    "@twinkleplop/markdown" "^0.2.1"
+    "@twinkleplop/markdown-core" "^0.2.1"
+    "@twinkleplop/powershell" "^0.2.1"
+    "@twinkleplop/python" "^0.1.7"
+    "@twinkleplop/rust" "^0.1.7"
+    "@twinkleplop/shellsession" "^0.1.7"
+    "@twinkleplop/sql" "^0.1.7"
+    "@twinkleplop/svelte" "^0.1.7"
+    "@twinkleplop/toml" "^0.1.7"
+    "@twinkleplop/tsx" "^0.1.7"
+    "@twinkleplop/typescript" "^0.1.7"
+    "@twinkleplop/yaml" "^0.1.7"
+    es-module-lexer "^1.6.0"
+    temml "^0.14.0"
 
 micromark-util-character@^2.0.0:
   version "2.1.1"
@@ -1521,16 +1785,6 @@ prelude-ls@^1.2.1:
   version "1.2.1"
   resolved "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.2.1.tgz"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
-
-prism-svelte@^0.4.7:
-  version "0.4.7"
-  resolved "https://registry.npmjs.org/prism-svelte/-/prism-svelte-0.4.7.tgz"
-  integrity sha512-yABh19CYbM24V7aS7TuPYRNMqthxwbvx6FF/Rw920YbyBWO3tnyPIqRMgHuSVsLmuHkkBS1Akyof463FVdkeDQ==
-
-prismjs@^1.17.1:
-  version "1.30.0"
-  resolved "https://registry.npmjs.org/prismjs/-/prismjs-1.30.0.tgz"
-  integrity sha512-DEvV2ZF2r2/63V+tK8hQvrR2ZGn10srHbXviTlcv7Kpzw8jWiNTqbVgjO3IY8RxrrOUF8VPMQQFysYYYv0YZxw==
 
 property-information@^7.0.0:
   version "7.2.0"
@@ -1735,6 +1989,11 @@ tapable@^2.3.3:
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.3.3.tgz#5da7c9992c46038221267985ab28421a8879f160"
   integrity sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==
 
+temml@^0.14.0:
+  version "0.14.0"
+  resolved "https://registry.yarnpkg.com/temml/-/temml-0.14.0.tgz#4abce2e8e29b8c48ce4c67183a0e4d7f149d6dd4"
+  integrity sha512-tz1LW/5IZpThK8c7ZpdTSH/n56eAj+ThirLieErtKxYC3EKCIiB4sKdRUehAgH+fQmvIKqMfP3gqTLBdLpy9zw==
+
 tinyglobby@^0.2.15, tinyglobby@^0.2.17:
   version "0.2.17"
   resolved "https://registry.yarnpkg.com/tinyglobby/-/tinyglobby-0.2.17.tgz#562a9a6c9eb2b3b123d39719f9af5bb44fcd7631"
@@ -1790,11 +2049,6 @@ undici-types@~8.9.0:
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-8.9.0.tgz#e240d97c8b5d85e5347ce73d25865c7906c1ec9f"
   integrity sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==
 
-unist-util-is@^4.0.0:
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/unist-util-is/-/unist-util-is-4.1.0.tgz"
-  integrity sha512-ZOQSsnce92GrxSqlnEEseX0gi7GH9zTJZ0p9dtu87WRb/37mMPO2Ilx1s/t9vBHrFhbgweUwb+t7cIn5dxPhZg==
-
 unist-util-is@^6.0.0:
   version "6.0.1"
   resolved "https://registry.npmjs.org/unist-util-is/-/unist-util-is-6.0.1.tgz"
@@ -1809,27 +2063,12 @@ unist-util-position@^5.0.0:
   dependencies:
     "@types/unist" "^3.0.0"
 
-unist-util-stringify-position@^2.0.0:
-  version "2.0.3"
-  resolved "https://registry.npmjs.org/unist-util-stringify-position/-/unist-util-stringify-position-2.0.3.tgz"
-  integrity sha512-3faScn5I+hy9VleOq/qNbAd6pAx7iH5jYBMS9I1HgQVijz/4mv5Bvw5iw1sC/90CODiKo81G/ps8AJrISn687g==
-  dependencies:
-    "@types/unist" "^2.0.2"
-
 unist-util-stringify-position@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/unist-util-stringify-position/-/unist-util-stringify-position-4.0.0.tgz"
   integrity sha512-0ASV06AAoKCDkS2+xw5RXJywruurpbC4JZSm7nr7MOt1ojAzvyyaO+UxZf18j8FCF6kmzCZKcAgN/yu2gm2XgQ==
   dependencies:
     "@types/unist" "^3.0.0"
-
-unist-util-visit-parents@^3.0.0:
-  version "3.1.1"
-  resolved "https://registry.npmjs.org/unist-util-visit-parents/-/unist-util-visit-parents-3.1.1.tgz"
-  integrity sha512-1KROIZWo6bcMrZEwiH2UrXDyalAa0uqzWCxCJj6lPOvTve2WkfgCytoDTPaMnodXh1WrXOq0haVYHj99ynJlsg==
-  dependencies:
-    "@types/unist" "^2.0.0"
-    unist-util-is "^4.0.0"
 
 unist-util-visit-parents@^6.0.0:
   version "6.0.2"
@@ -1838,15 +2077,6 @@ unist-util-visit-parents@^6.0.0:
   dependencies:
     "@types/unist" "^3.0.0"
     unist-util-is "^6.0.0"
-
-unist-util-visit@^2.0.1:
-  version "2.0.3"
-  resolved "https://registry.npmjs.org/unist-util-visit/-/unist-util-visit-2.0.3.tgz"
-  integrity sha512-iJ4/RczbJMkD0712mGktuGpm/U4By4FfDonL7N/9tATGIF4imikjOuagyMY53tnZq3NP6BcmlrHhEKAfGWjh7Q==
-  dependencies:
-    "@types/unist" "^2.0.0"
-    unist-util-is "^4.0.0"
-    unist-util-visit-parents "^3.0.0"
 
 unist-util-visit@^5.0.0:
   version "5.1.0"
@@ -1868,14 +2098,6 @@ util-deprecate@^1.0.2:
   version "1.0.2"
   resolved "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
   integrity sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==
-
-vfile-message@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.npmjs.org/vfile-message/-/vfile-message-2.0.4.tgz"
-  integrity sha512-DjssxRGkMvifUOJre00juHoP9DPWuzjxKuMDrhNbk2TdaYYBNMStsNhEOt3idrtI12VQYM/1+iM0KOzXi4pxwQ==
-  dependencies:
-    "@types/unist" "^2.0.0"
-    unist-util-stringify-position "^2.0.0"
 
 vfile-message@^4.0.0:
   version "4.0.3"
